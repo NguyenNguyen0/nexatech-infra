@@ -1,0 +1,17 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+ansible/inventory/*.ini
+!ansible/inventory/*.example
+
+*.env
+!.env.example
+!env-templates/*.env.example
+terraform-output.json

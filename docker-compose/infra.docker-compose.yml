@@ -1,0 +1,95 @@
+services:
+  discovery-server:
+    image: ${ECR_REGISTRY}/discovery-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/discovery-server.env
+        required: false
+    environment:
+      SERVER_PORT: 8761
+      EUREKA_INSTANCE_HOSTNAME: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - nexatech
+
+  config-server:
+    image: ${ECR_REGISTRY}/config-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/config-server.env
+        required: false
+    environment:
+      SERVER_PORT: 8888
+      EUREKA_INSTANCE_HOSTNAME: config-server
+      EUREKA_ENABLED: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    ports:
+      - "8888:8888"
+    depends_on:
+      - discovery-server
+    networks:
+      - nexatech
+
+  api-gateway:
+    image: ${ECR_REGISTRY}/api-gateway:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/api-gateway.env
+        required: false
+    environment:
+      SERVER_PORT: 8080
+      CONFIG_SERVER_URI: http://config-server:8888
+      EUREKA_INSTANCE_HOSTNAME: api-gateway
+      EUREKA_ENABLED: "true"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-server
+      - discovery-server
+    networks:
+      - nexatech
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    restart: unless-stopped
+    command: ["start", "--http-enabled=true", "--hostname-strict=false"]
+    env_file:
+      - path: /opt/nexatech/env/keycloak.env
+        required: false
+    ports:
+      - "9000:8080"
+    networks:
+      - nexatech
+
+  kafka:
+    image: bitnami/kafka:3.7
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/kafka.env
+        required: false
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/bitnami/kafka
+    networks:
+      - nexatech
+
+networks:
+  nexatech:
+    name: nexatech
+
+volumes:
+  kafka-data:

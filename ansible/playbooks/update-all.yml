@@ -1,0 +1,4 @@
+---
+- import_playbook: deploy-infra.yml
+
+- import_playbook: deploy-app.yml

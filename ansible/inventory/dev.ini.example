@@ -1,0 +1,12 @@
+[infra]
+infra-1 ansible_host=PUBLIC_IP private_ip=PRIVATE_IP app_group=infra compose_file=infra.docker-compose.yml
+
+[app]
+app-1 ansible_host=PUBLIC_IP private_ip=PRIVATE_IP app_group=app-1 compose_file=app-1.docker-compose.yml
+# app-2 ansible_host=PUBLIC_IP private_ip=PRIVATE_IP app_group=app-2 compose_file=app-2.docker-compose.yml
+
+[all:vars]
+ansible_user=ubuntu
+aws_region=ap-southeast-1
+ecr_registry=
+image_tag=latest

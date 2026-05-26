@@ -1,0 +1,11 @@
+---
+- name: Deploy NexaTech application services
+  hosts: app
+  become: true
+  vars:
+    compose_project_name: "nexatech-{{ app_group | default('app') }}"
+    compose_src: "{{ playbook_dir }}/../../docker-compose/{{ compose_file }}"
+    compose_dest: "/opt/nexatech/compose/{{ compose_file }}"
+  roles:
+    - docker
+    - compose_deploy

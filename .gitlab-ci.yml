@@ -1,0 +1,38 @@
+stages:
+  - validate
+  - plan
+
+variables:
+  TF_ROOT: terraform
+  TF_IN_AUTOMATION: "true"
+
+terraform:fmt:
+  image: hashicorp/terraform:1.9
+  stage: validate
+  script:
+    - terraform -chdir=$TF_ROOT fmt -check -recursive
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH'
+
+terraform:validate:
+  image: hashicorp/terraform:1.9
+  stage: validate
+  script:
+    - terraform -chdir=$TF_ROOT init -backend=false
+    - terraform -chdir=$TF_ROOT validate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH'
+
+terraform:plan:dev:
+  image: hashicorp/terraform:1.9
+  stage: plan
+  script:
+    - terraform -chdir=$TF_ROOT init
+    - terraform -chdir=$TF_ROOT plan -var-file=environments/dev.tfvars -out=dev.tfplan
+  artifacts:
+    paths:
+      - terraform/dev.tfplan
+    expire_in: 1 day
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual

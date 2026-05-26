@@ -1,0 +1,128 @@
+services:
+  chat-service:
+    image: ${ECR_REGISTRY}/chat-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/chat-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+    ports:
+      - "8089:8089"
+    networks:
+      - nexatech
+
+  shipping-service:
+    image: ${ECR_REGISTRY}/shipping-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/shipping-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8091:8091"
+    networks:
+      - nexatech
+
+  news-service:
+    image: ${ECR_REGISTRY}/news-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/news-service.env
+        required: false
+    environment:
+      SPRING_CLOUD_CONFIG_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8092:8092"
+    networks:
+      - nexatech
+
+  audit-service:
+    image: ${ECR_REGISTRY}/audit-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/audit-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8096:8096"
+    networks:
+      - nexatech
+
+  storage-service:
+    image: ${ECR_REGISTRY}/storage-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/storage-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+    ports:
+      - "8088:8088"
+    networks:
+      - nexatech
+
+  promotion-service:
+    image: ${ECR_REGISTRY}/promotion-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/promotion-service.env
+        required: false
+    ports:
+      - "8093:8093"
+    networks:
+      - nexatech
+
+  agent-service:
+    image: ${ECR_REGISTRY}/agent-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/agent-service.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+    expose:
+      - "8093"
+    networks:
+      - nexatech
+
+  mcp-server:
+    image: ${ECR_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+    ports:
+      - "8094:8094"
+    networks:
+      - nexatech
+
+  recommendation-service:
+    image: ${ECR_REGISTRY}/recommendation-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/recommendation-service.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8095:8095"
+    networks:
+      - nexatech
+
+networks:
+  nexatech:
+    name: nexatech

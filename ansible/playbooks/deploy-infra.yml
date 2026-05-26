@@ -1,0 +1,11 @@
+---
+- name: Deploy NexaTech platform services
+  hosts: infra
+  become: true
+  vars:
+    compose_project_name: nexatech-infra
+    compose_src: "{{ playbook_dir }}/../../docker-compose/infra.docker-compose.yml"
+    compose_dest: /opt/nexatech/compose/infra.docker-compose.yml
+  roles:
+    - docker
+    - compose_deploy

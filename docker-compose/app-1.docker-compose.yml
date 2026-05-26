@@ -1,0 +1,109 @@
+services:
+  identity-service:
+    image: ${ECR_REGISTRY}/identity-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/identity-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8082:8082"
+    networks:
+      - nexatech
+
+  user-service:
+    image: ${ECR_REGISTRY}/user-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/user-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8083:8083"
+    networks:
+      - nexatech
+
+  product-service:
+    image: ${ECR_REGISTRY}/product-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/product-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8090:8090"
+    networks:
+      - nexatech
+
+  order-service:
+    image: ${ECR_REGISTRY}/order-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/order-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8084:8084"
+    networks:
+      - nexatech
+
+  inventory-service:
+    image: ${ECR_REGISTRY}/inventory-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/inventory-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8085:8085"
+    networks:
+      - nexatech
+
+  payment-service:
+    image: ${ECR_REGISTRY}/payment-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/payment-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8086:8086"
+    networks:
+      - nexatech
+
+  notification-service:
+    image: ${ECR_REGISTRY}/notification-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/notification-service.env
+        required: false
+    environment:
+      CONFIG_SERVER_URI: ${CONFIG_SERVER_URI:-http://INFRA_PRIVATE_IP:8888}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-INFRA_PRIVATE_IP:9092}
+    ports:
+      - "8087:8087"
+    networks:
+      - nexatech
+
+networks:
+  nexatech:
+    name: nexatech
