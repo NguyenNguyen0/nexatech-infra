@@ -28,6 +28,16 @@ output "alb_dns_name" {
   value       = var.enable_alb ? module.alb[0].dns_name : null
 }
 
+output "cloudfront_api_domain_name" {
+  description = "CloudFront domain name for the API HTTPS proxy, if enabled."
+  value       = var.enable_alb && var.enable_cloudfront_api ? aws_cloudfront_distribution.api[0].domain_name : null
+}
+
+output "cloudfront_api_url" {
+  description = "CloudFront HTTPS URL for the API, if enabled."
+  value       = var.enable_alb && var.enable_cloudfront_api ? "https://${aws_cloudfront_distribution.api[0].domain_name}" : null
+}
+
 output "s3_bucket_names" {
   description = "Created S3 buckets."
   value       = keys(aws_s3_bucket.app)

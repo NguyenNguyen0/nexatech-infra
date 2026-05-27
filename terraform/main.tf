@@ -61,6 +61,14 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+data "aws_cloudfront_cache_policy" "caching_disabled" {
+  name = "Managed-CachingDisabled"
+}
+
+data "aws_cloudfront_origin_request_policy" "all_viewer_except_host_header" {
+  name = "Managed-AllViewerExceptHostHeader"
+}
+
 module "vpc" {
   source = "./modules/vpc"
 
@@ -205,6 +213,54 @@ module "alb" {
   target_instance_id = module.ec2["infra-1"].instance_id
   target_port        = 8080
   certificate_arn    = var.certificate_arn
+}
+
+resource "aws_cloudfront_distribution" "api" {
+  count = var.enable_alb && var.enable_cloudfront_api ? 1 : 0
+
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "${local.name_prefix} API HTTPS proxy"
+  price_class         = "PriceClass_100"
+  wait_for_deployment = false
+
+  origin {
+    domain_name = module.alb[0].dns_name
+    origin_id   = "${local.name_prefix}-alb"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "${local.name_prefix}-alb"
+    viewer_protocol_policy = "redirect-to-https"
+
+    allowed_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods  = ["GET", "HEAD", "OPTIONS"]
+
+    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
+    compress                 = true
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+
+  tags = {
+    Name = "${local.name_prefix}-api"
+  }
 }
 
 resource "aws_s3_bucket" "app" {

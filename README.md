@@ -130,7 +130,7 @@ Edit the file with real values, especially:
 For the current dev deployment, the public backend values come from Terraform output:
 
 ```yaml
-api_public_url: http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+api_public_url: "{{ cloudfront_api_url from terraform output }}"
 keycloak_public_url: http://18.143.165.85:9000
 ```
 
@@ -244,16 +244,16 @@ Both apps should deploy only from the `dev` branch. The frontend projects use `v
 Set these Vercel environment variables for the admin app:
 
 ```text
-VITE_BACKEND_BASE_URL=http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
-VITE_WS_BASE_URL=ws://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+VITE_BACKEND_BASE_URL=<cloudfront_api_url>
+VITE_WS_BASE_URL=<cloudfront_api_url>
 ```
 
 Set these Vercel environment variables for the client app:
 
 ```text
-API_GATEWAY_URL=http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
-NEXT_PUBLIC_BACKEND_BASE_URL=http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
-NEXT_PUBLIC_WS_BASE_URL=ws://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+API_GATEWAY_URL=<cloudfront_api_url>
+NEXT_PUBLIC_BACKEND_BASE_URL=<cloudfront_api_url>
+NEXT_PUBLIC_WS_BASE_URL=<cloudfront_api_url>
 NEXT_PUBLIC_FRONTEND_URL=https://your-client-project.vercel.app
 ```
 

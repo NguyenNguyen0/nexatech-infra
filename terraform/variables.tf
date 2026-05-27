@@ -153,6 +153,12 @@ variable "certificate_arn" {
   default     = null
 }
 
+variable "enable_cloudfront_api" {
+  description = "Create a CloudFront distribution in front of the ALB to provide an HTTPS default domain for the API."
+  type        = bool
+  default     = true
+}
+
 variable "s3_buckets" {
   description = "S3 buckets for storage/news static objects. Names must be globally unique."
   type        = list(string)
