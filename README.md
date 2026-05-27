@@ -17,11 +17,11 @@ The current dev sizing is intentionally not free-tier sized:
 
 | Node | Instance type | Purpose |
 | --- | --- | --- |
-| `infra-1` | `m7i-flex.xlarge` | Kafka, Keycloak, discovery, config, API gateway |
-| `app-1` | `m7i-flex.xlarge` | Core Java Spring Boot services |
-| `app-2` | `m7i-flex.large` | Lighter app and Python services |
+| `infra-1` | `m7i-flex.large` | Kafka, Keycloak, discovery, config, API gateway |
+| `app-1` | `m7i-flex.large` | Core Java Spring Boot services |
+| `app-2` | `c7i-flex.large` | Lighter app and Python services |
 
-`instance_architecture` is `x86_64` so Terraform selects an Ubuntu 24.04 amd64 AMI that is compatible with the `m7i-flex` family.
+`instance_architecture` is `x86_64` so Terraform selects an Ubuntu 24.04 amd64 AMI that is compatible with the `m7i-flex` and `c7i-flex` families.
 
 ## Prerequisites
 

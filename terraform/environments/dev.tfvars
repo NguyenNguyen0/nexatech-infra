@@ -16,10 +16,10 @@ allowed_http_cidrs = ["0.0.0.0/0"]
 key_name = "nexatech-dev"
 
 instance_architecture = "x86_64"
-infra_instance_type   = "m7i-flex.xlarge"
-app1_instance_type    = "m7i-flex.xlarge"
+infra_instance_type   = "m7i-flex.large"
+app1_instance_type    = "m7i-flex.large"
 enable_app2           = true
-app2_instance_type    = "m7i-flex.large"
+app2_instance_type    = "c7i-flex.large"
 root_volume_size_gb   = 40
 
 create_rds            = true
