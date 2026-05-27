@@ -1,0 +1,7 @@
+---
+deploy_root: /opt/nexatech
+compose_dir: "{{ deploy_root }}/compose"
+env_dir: "{{ deploy_root }}/env"
+aws_region: ap-southeast-1
+image_registry: ""
+image_tag: latest
