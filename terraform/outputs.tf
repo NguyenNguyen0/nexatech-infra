@@ -18,10 +18,11 @@ output "ec2_private_ips" {
   value       = { for name, node in module.ec2 : name => node.private_ip }
 }
 
-output "ecr_repository_urls" {
-  description = "ECR repository URLs by service name."
-  value       = module.ecr.repository_urls
-}
+# ECR disabled — images hosted on Docker Hub
+# output "ecr_repository_urls" {
+#   description = "ECR repository URLs by service name."
+#   value       = module.ecr.repository_urls
+# }
 
 output "rds_endpoint" {
   description = "RDS endpoint, if enabled."
