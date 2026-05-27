@@ -7,3 +7,45 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-push]
+      - id: terraform-validate
+        name: Terraform validate
+        entry: bash -c 'terraform -chdir=terraform init -backend=false -input=false && terraform -chdir=terraform validate'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: terraform-plan-show
+        name: Terraform plan and show
+        entry: bash -c 'terraform -chdir=terraform plan -var-file=environments/dev.tfvars -out=plan.tfplan && terraform -chdir=terraform show -no-color plan.tfplan >/tmp/nexatech-terraform-plan.txt'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: tflint
+        name: TFLint
+        entry: tflint --chdir=terraform
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: tfsec
+        name: tfsec
+        entry: tfsec terraform
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: checkov
+        name: Checkov Terraform scan
+        entry: checkov -d terraform --quiet
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: ansible-lint
+        name: Ansible lint
+        entry: ansible-lint ansible
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: gitlab-ci-local-validate
+        name: GitLab CI local validate
+        entry: gitlab-ci-local --list
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

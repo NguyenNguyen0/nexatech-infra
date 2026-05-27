@@ -23,23 +23,52 @@ Low-cost AWS infrastructure for NexaTech backend.
 
 ## Local Hooks
 
+Install local validation tools:
+
+```bash
+pip install pre-commit ansible-lint checkov
+npm install -g gitlab-ci-local
+```
+
+Install Terraform tools separately:
+
+```bash
+# macOS example
+brew install terraform tflint tfsec
+```
+
 Install the pre-push hook:
 
 ```bash
 pre-commit install --hook-type pre-push
 ```
 
-Before every push, the hook checks Terraform formatting with:
+Before every push, the hook runs:
+
+- `terraform fmt -check -recursive`
+- `terraform init -backend=false -input=false`
+- `terraform validate`
+- `terraform plan -var-file=environments/dev.tfvars -out=plan.tfplan`
+- `terraform show -no-color plan.tfplan`
+- `tflint --chdir=terraform`
+- `tfsec terraform`
+- `checkov -d terraform --quiet`
+- `ansible-lint ansible`
+- `gitlab-ci-local --list`
+
+Run all pre-push checks manually:
 
 ```bash
-terraform -chdir=terraform fmt -check -recursive
+pre-commit run --hook-stage pre-push --all-files
 ```
 
-You can run it manually with:
+If a heavy check is not needed for an urgent push, skip it explicitly:
 
 ```bash
-pre-commit run terraform-fmt-check --hook-stage pre-push
+SKIP=terraform-plan-show,tfsec,checkov git push
 ```
+
+For larger Ansible changes, add Molecule scenarios under each role before wiring Molecule into the hook. For a larger multi-environment Terraform layout, consider Terragrunt or OpenTofu/Terraform Cloud with remote state locking.
 
 ## Deploy Dev
 
