@@ -77,12 +77,6 @@ module "iam" {
   name = local.name_prefix
 }
 
-# ECR module disabled — images are hosted on Docker Hub
-# module "ecr" {
-#   source = "./modules/ecr"
-#   repositories = var.ecr_repositories
-# }
-
 resource "aws_security_group" "ec2" {
   name        = "${local.name_prefix}-ec2"
   description = "Access for NexaTech EC2 nodes"

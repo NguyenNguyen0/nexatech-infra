@@ -141,32 +141,6 @@ variable "rds_password" {
   sensitive   = true
 }
 
-variable "ecr_repositories" {
-  description = "ECR repositories to create."
-  type        = list(string)
-  default = [
-    "api-gateway",
-    "discovery-server",
-    "config-server",
-    "identity-service",
-    "user-service",
-    "product-service",
-    "order-service",
-    "inventory-service",
-    "payment-service",
-    "shipping-service",
-    "notification-service",
-    "chat-service",
-    "storage-service",
-    "news-service",
-    "audit-service",
-    "promotion-service",
-    "agent-service",
-    "mcp-server",
-    "recommendation-service"
-  ]
-}
-
 variable "enable_alb" {
   description = "Create a public ALB for api-gateway."
   type        = bool

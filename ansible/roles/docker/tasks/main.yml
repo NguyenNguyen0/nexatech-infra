@@ -24,7 +24,7 @@
 
 - name: Add Docker apt repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    repo: "deb [arch={{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_facts['distribution_release'] }} stable"
     filename: docker
     state: present
 
@@ -50,8 +50,3 @@
     name: ubuntu
     groups: docker
     append: true
-
-- name: Install AWS CLI v2 from apt when available
-  ansible.builtin.apt:
-    name: awscli
-    state: present

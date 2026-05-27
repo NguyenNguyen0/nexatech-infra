@@ -24,12 +24,9 @@
   ansible.builtin.shell: "echo '{{ dockerhub_token }}' | docker login --username '{{ dockerhub_username }}' --password-stdin"
   changed_when: false
   no_log: true
-  when: dockerhub_username is defined and dockerhub_token is defined
-
-- name: Login to ECR when registry is configured (fallback)
-  ansible.builtin.shell: "aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ ecr_registry }}"
-  changed_when: false
-  when: (dockerhub_username is not defined or dockerhub_token is not defined) and ecr_registry | length > 0
+  when:
+    - dockerhub_username | default('') | length > 0
+    - dockerhub_token | default('') | length > 0
 
 - name: Pull images
   ansible.builtin.command:

@@ -117,7 +117,7 @@ terraform:apply:dev:
 ansible:deploy:infra:
   extends: .ansible-deploy
   script:
-    - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
+    - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-infra.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit infra
         --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"

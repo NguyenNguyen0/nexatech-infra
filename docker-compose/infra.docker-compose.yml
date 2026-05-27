@@ -1,6 +1,6 @@
 services:
   discovery-server:
-    image: ${ECR_REGISTRY}/discovery-server:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/discovery-server:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/discovery-server.env
@@ -14,7 +14,7 @@ services:
       - nexatech
 
   config-server:
-    image: ${ECR_REGISTRY}/config-server:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/config-server:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/config-server.env
@@ -32,7 +32,7 @@ services:
       - nexatech
 
   api-gateway:
-    image: ${ECR_REGISTRY}/api-gateway:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/api-gateway:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/api-gateway.env

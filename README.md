@@ -9,7 +9,6 @@ Low-cost AWS infrastructure for NexaTech backend.
   - `infra-1`: discovery-server, config-server, api-gateway, Keycloak, Kafka.
   - `app-1`: core Java services.
   - optional `app-2`: shipping, news, audit, chat, storage, promotion, Python services.
-- ECR repositories for all services.
 - Optional RDS PostgreSQL.
 - Optional public ALB routing to `api-gateway`.
 - Optional private S3 buckets for storage/news assets.
@@ -18,7 +17,7 @@ Low-cost AWS infrastructure for NexaTech backend.
 
 - Terraform >= 1.6
 - Ansible
-- AWS credentials with permissions for EC2, VPC, IAM, ECR, RDS, ALB, and S3
+- AWS credentials with permissions for EC2, VPC, IAM, RDS, ALB, and S3
 - `jq` for `scripts/render-inventory.sh`
 - `pre-commit` if you want local Git hooks
 
@@ -62,7 +61,7 @@ terraform -chdir=terraform output -json > terraform-output.json
 ./scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
 ```
 
-Set `ecr_registry` and `image_tag` in `ansible/inventory/dev.ini`.
+Set `dockerhub_namespace` and `image_tag` in `ansible/inventory/dev.ini`.
 
 Copy env templates to each EC2 under `/opt/nexatech/env/` and fill real values:
 

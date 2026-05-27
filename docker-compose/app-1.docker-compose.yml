@@ -1,6 +1,6 @@
 services:
   identity-service:
-    image: ${ECR_REGISTRY}/identity-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/identity-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/identity-service.env
@@ -15,7 +15,7 @@ services:
       - nexatech
 
   user-service:
-    image: ${ECR_REGISTRY}/user-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/user-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/user-service.env
@@ -30,7 +30,7 @@ services:
       - nexatech
 
   product-service:
-    image: ${ECR_REGISTRY}/product-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/product-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/product-service.env
@@ -45,7 +45,7 @@ services:
       - nexatech
 
   order-service:
-    image: ${ECR_REGISTRY}/order-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/order-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/order-service.env
@@ -60,7 +60,7 @@ services:
       - nexatech
 
   inventory-service:
-    image: ${ECR_REGISTRY}/inventory-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/inventory-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/inventory-service.env
@@ -75,7 +75,7 @@ services:
       - nexatech
 
   payment-service:
-    image: ${ECR_REGISTRY}/payment-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/payment-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/payment-service.env
@@ -90,7 +90,7 @@ services:
       - nexatech
 
   notification-service:
-    image: ${ECR_REGISTRY}/notification-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/notification-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/notification-service.env

@@ -1,6 +1,6 @@
 services:
   chat-service:
-    image: ${ECR_REGISTRY}/chat-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/chat-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/chat-service.env
@@ -14,7 +14,7 @@ services:
       - nexatech
 
   shipping-service:
-    image: ${ECR_REGISTRY}/shipping-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/shipping-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/shipping-service.env
@@ -29,7 +29,7 @@ services:
       - nexatech
 
   news-service:
-    image: ${ECR_REGISTRY}/news-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/news-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/news-service.env
@@ -44,7 +44,7 @@ services:
       - nexatech
 
   audit-service:
-    image: ${ECR_REGISTRY}/audit-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/audit-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/audit-service.env
@@ -59,7 +59,7 @@ services:
       - nexatech
 
   storage-service:
-    image: ${ECR_REGISTRY}/storage-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/storage-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/storage-service.env
@@ -73,7 +73,7 @@ services:
       - nexatech
 
   promotion-service:
-    image: ${ECR_REGISTRY}/promotion-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/promotion-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/promotion-service.env
@@ -84,7 +84,7 @@ services:
       - nexatech
 
   agent-service:
-    image: ${ECR_REGISTRY}/agent-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/agent-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/agent-service.env
@@ -97,7 +97,7 @@ services:
       - nexatech
 
   mcp-server:
-    image: ${ECR_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/mcp-server.env
@@ -110,7 +110,7 @@ services:
       - nexatech
 
   recommendation-service:
-    image: ${ECR_REGISTRY}/recommendation-service:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY}/recommendation-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file:
       - path: /opt/nexatech/env/recommendation-service.env
