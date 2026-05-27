@@ -37,7 +37,7 @@ variables:
     - apt-get update -qq && apt-get install -y -qq openssh-client
     - pip install --quiet ansible boto3 botocore
     - mkdir -p ~/.ssh
-    - echo "$ANSIBLE_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - echo "$ANSIBLE_SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
 
 # ─────────────────────────────────────────────
