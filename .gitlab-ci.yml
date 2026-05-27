@@ -91,9 +91,8 @@ terraform:apply:dev:
   needs: ["terraform:plan:dev"]
   script:
     - terraform -chdir=$TF_ROOT init
-    - terraform -chdir=$TF_ROOT apply dev.tfplan
+    - terraform -chdir=$TF_ROOT apply -auto-approve -var-file=$TF_VAR_FILE
     - terraform -chdir=$TF_ROOT output -json > terraform-output.json
-    # Render Ansible inventory từ Terraform output
     - apk add --no-cache jq
     - chmod +x scripts/render-inventory.sh
     - DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE
