@@ -16,16 +16,16 @@ allowed_http_cidrs = ["0.0.0.0/0"]
 key_name = "nexatech-dev"
 
 instance_architecture = "x86_64"
-infra_instance_type   = "t3.medium"
-app1_instance_type    = "t3.medium"
+infra_instance_type   = "t3.micro"
+app1_instance_type    = "t3.micro"
 enable_app2           = false
-app2_instance_type    = "t3.small"
-root_volume_size_gb   = 30
+app2_instance_type    = "t3.micro"
+root_volume_size_gb   = 20
 
 create_rds            = true
 rds_instance_class    = "db.t3.micro"
 rds_allocated_storage = 20
-rds_engine_version    = "16.3"
+rds_engine_version    = "16"
 rds_database_name     = "keycloak" # default database for keycloak
 rds_username          = "nexatech"
 rds_password          = "nexatech123"
