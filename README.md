@@ -121,11 +121,39 @@ That file contains shared values such as RDS, Redis, Mongo, Keycloak, frontend U
 
 Edit the file with real values, especially:
 
-- `frontend_url`
+- `frontend_url` or both `client_frontend_url` and `admin_frontend_url`
 - `api_public_url`
 - `keycloak_public_url`
 - `rds_endpoint`, `rds_username`, `rds_password`
 - Redis, MongoDB, S3, mail, payment, and shipping credentials
+
+For the current dev deployment, the public backend values come from Terraform output:
+
+```yaml
+api_public_url: http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+keycloak_public_url: http://18.143.165.85:9000
+```
+
+If both storefront and admin are deployed on Vercel, keep both URLs in the vault file:
+
+```yaml
+client_frontend_url: https://your-client-project.vercel.app
+admin_frontend_url: https://nexatech-frontend-admin.vercel.app
+frontend_url: "{{ client_frontend_url }}"
+frontend_allowed_origins: "{{ client_frontend_url }},{{ admin_frontend_url }}"
+```
+
+Then set the API gateway CORS value in `service_env_files.api-gateway` to:
+
+```yaml
+GATEWAY_CORS_ALLOWED_ORIGIN_PATTERNS: "{{ frontend_allowed_origins }}"
+```
+
+For notifications and customer-facing redirects, use the client URL:
+
+```yaml
+FRONTEND_URL: "{{ client_frontend_url }}"
+```
 
 Before committing real values, encrypt the file:
 
@@ -192,6 +220,44 @@ The backend project must be allowed to trigger this project with `CI_JOB_TOKEN`,
 - Kafka uses `apache/kafka:3.7.2`. It advertises `EXTERNAL://${INFRA_PRIVATE_IP}:9092` so app nodes can connect across the VPC. Do not use `localhost` for the deployed Kafka advertised listener.
 - Keycloak uses `quay.io/keycloak/keycloak:26.5.2` and reads database settings from `/opt/nexatech/env/keycloak.env`. In dev AWS, this should point to the RDS PostgreSQL endpoint.
 - The app nodes receive `CONFIG_SERVER_URI`, `EUREKA_URL`, and `KAFKA_BOOTSTRAP_SERVERS` through `/opt/nexatech/runtime.env`.
+
+## Vercel Frontends
+
+The frontend repo has two Vercel apps:
+
+- `admin`: React/Vite admin console
+- `client`: Next.js storefront
+
+Both apps should deploy only from the `dev` branch. The frontend projects use `vercel.json` with `git.deploymentEnabled` configured as:
+
+```json
+{
+  "git": {
+    "deploymentEnabled": {
+      "*": false,
+      "dev": true
+    }
+  }
+}
+```
+
+Set these Vercel environment variables for the admin app:
+
+```text
+VITE_BACKEND_BASE_URL=http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+VITE_WS_BASE_URL=ws://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+```
+
+Set these Vercel environment variables for the client app:
+
+```text
+API_GATEWAY_URL=http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+NEXT_PUBLIC_BACKEND_BASE_URL=http://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+NEXT_PUBLIC_WS_BASE_URL=ws://nexatech-dev-alb-248628916.ap-southeast-1.elb.amazonaws.com
+NEXT_PUBLIC_FRONTEND_URL=https://your-client-project.vercel.app
+```
+
+Keep Vercel URLs and `api_public_url` in `ansible/group_vars/dev.secrets.yml` aligned. After changing frontend URLs, rerun `deploy-infra.yml` so API Gateway gets the updated CORS origins.
 
 ## Notes
 
