@@ -41,12 +41,17 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-${var.instance_architecture}-server-*"]
+    values = ["ubuntu/images/hvm-ssd*/ubuntu-noble-24.04-${var.instance_architecture}-server-*"]
   }
 
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = [var.instance_architecture]
   }
 }
 
