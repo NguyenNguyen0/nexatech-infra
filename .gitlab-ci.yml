@@ -1,3 +1,12 @@
+spec:
+  inputs:
+    backend_image_tag:
+      default: ""
+      description: "Docker image tag built by nexatech-backend."
+    image_tag:
+      default: latest
+      description: "Fallback Docker image tag for manual infra pipelines."
+---
 workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
@@ -19,6 +28,8 @@ variables:
   ANSIBLE_HOST_KEY_CHECKING: "False"
   ANSIBLE_FORCE_COLOR: "true"
   ANSIBLE_ROLES_PATH: "$CI_PROJECT_DIR/ansible/roles"
+  PIPELINE_BACKEND_IMAGE_TAG: "$[[ inputs.backend_image_tag ]]"
+  PIPELINE_IMAGE_TAG: "$[[ inputs.image_tag ]]"
 
 # ─────────────────────────────────────────────
 # BASE TEMPLATES
@@ -88,7 +99,7 @@ terraform:apply:dev:
   stage: apply
   needs: ["terraform:plan:dev"]
   script:
-    - export DEPLOY_IMAGE_TAG="${BACKEND_IMAGE_TAG:-${IMAGE_TAG:-latest}}"
+    - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - terraform -chdir=$TF_ROOT init
     - terraform -chdir=$TF_ROOT apply -auto-approve -var-file=$TF_VAR_FILE
@@ -119,7 +130,7 @@ terraform:apply:dev:
 ansible:deploy:infra:
   extends: .ansible-deploy
   script:
-    - export DEPLOY_IMAGE_TAG="${BACKEND_IMAGE_TAG:-${IMAGE_TAG:-latest}}"
+    - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-infra.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
@@ -134,7 +145,7 @@ ansible:deploy:infra:
 ansible:deploy:app:
   extends: .ansible-deploy
   script:
-    - export DEPLOY_IMAGE_TAG="${BACKEND_IMAGE_TAG:-${IMAGE_TAG:-latest}}"
+    - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
