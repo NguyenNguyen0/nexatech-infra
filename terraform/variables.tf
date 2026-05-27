@@ -59,7 +59,7 @@ variable "instance_ami_id" {
 }
 
 variable "instance_architecture" {
-  description = "EC2 CPU architecture: arm64 for t4g or x86_64 for t3."
+  description = "EC2 CPU architecture. Use x86_64 for Intel/AMD families such as t3, m7i-flex, and c7i-flex; use arm64 for Graviton families such as t4g."
   type        = string
   default     = "arm64"
 

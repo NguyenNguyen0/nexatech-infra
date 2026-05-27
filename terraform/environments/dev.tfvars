@@ -16,11 +16,11 @@ allowed_http_cidrs = ["0.0.0.0/0"]
 key_name = "nexatech-dev"
 
 instance_architecture = "x86_64"
-infra_instance_type   = "t3.micro"
-app1_instance_type    = "t3.micro"
-enable_app2           = false
-app2_instance_type    = "t3.micro"
-root_volume_size_gb   = 20
+infra_instance_type   = "m7i-flex.xlarge"
+app1_instance_type    = "m7i-flex.xlarge"
+enable_app2           = true
+app2_instance_type    = "m7i-flex.large"
+root_volume_size_gb   = 40
 
 create_rds            = true
 rds_instance_class    = "db.t3.micro"
