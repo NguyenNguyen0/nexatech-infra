@@ -1,13 +1,53 @@
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never
+
 stages:
   - validate
   - plan
+  - apply
+  - deploy
 
 variables:
   TF_ROOT: terraform
   TF_IN_AUTOMATION: "true"
+  TF_VAR_FILE: "environments/dev.tfvars"
+  ANSIBLE_HOST_KEY_CHECKING: "False"
+  ANSIBLE_FORCE_COLOR: "true"
+
+# ─────────────────────────────────────────────
+# BASE TEMPLATES
+# ─────────────────────────────────────────────
+
+.terraform-base:
+  image: hashicorp/terraform:1.9
+  before_script:
+    - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+    - export AWS_DEFAULT_REGION=${AWS_REGION:-ap-southeast-1}
+
+.ansible-base:
+  image: python:3.12-slim
+  before_script:
+    - pip install --quiet ansible boto3 botocore
+    - mkdir -p ~/.ssh
+    - echo "$ANSIBLE_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(cat terraform-output.json | python3 -c
+        "import sys,json; d=json.load(sys.stdin);
+         ips=list(d.get('ec2_public_ips',{}).get('value',{}).values());
+         print(' '.join(ips))" 2>/dev/null || echo "") >> ~/.ssh/known_hosts 2>/dev/null || true
+
+# ─────────────────────────────────────────────
+# STAGE: VALIDATE
+# ─────────────────────────────────────────────
 
 terraform:fmt:
-  image: hashicorp/terraform:1.9
+  extends: .terraform-base
   stage: validate
   script:
     - terraform -chdir=$TF_ROOT fmt -check -recursive
@@ -15,7 +55,7 @@ terraform:fmt:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH'
 
 terraform:validate:
-  image: hashicorp/terraform:1.9
+  extends: .terraform-base
   stage: validate
   script:
     - terraform -chdir=$TF_ROOT init -backend=false
@@ -23,16 +63,94 @@ terraform:validate:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH'
 
+# ─────────────────────────────────────────────
+# STAGE: PLAN
+# ─────────────────────────────────────────────
+
 terraform:plan:dev:
-  image: hashicorp/terraform:1.9
+  extends: .terraform-base
   stage: plan
   script:
     - terraform -chdir=$TF_ROOT init
-    - terraform -chdir=$TF_ROOT plan -var-file=environments/dev.tfvars -out=dev.tfplan
+    - terraform -chdir=$TF_ROOT plan -var-file=$TF_VAR_FILE -out=dev.tfplan
   artifacts:
     paths:
-      - terraform/dev.tfplan
+      - $TF_ROOT/dev.tfplan
+      - $TF_ROOT/.terraform.lock.hcl
     expire_in: 1 day
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
+
+# ─────────────────────────────────────────────
+# STAGE: APPLY (manual gate)
+# ─────────────────────────────────────────────
+
+terraform:apply:dev:
+  extends: .terraform-base
+  stage: apply
+  needs: ["terraform:plan:dev"]
+  script:
+    - terraform -chdir=$TF_ROOT init
+    - terraform -chdir=$TF_ROOT apply dev.tfplan
+    - terraform -chdir=$TF_ROOT output -json > terraform-output.json
+    # Render Ansible inventory từ Terraform output
+    - apk add --no-cache jq
+    - chmod +x scripts/render-inventory.sh
+    - DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE
+      IMAGE_TAG=${CI_COMMIT_SHORT_SHA:-latest}
+      bash scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
+  artifacts:
+    paths:
+      - terraform-output.json
+      - ansible/inventory/dev.ini
+    expire_in: 1 day
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
+  environment:
+    name: dev
+
+# ─────────────────────────────────────────────
+# STAGE: DEPLOY (Ansible)
+# ─────────────────────────────────────────────
+
+.ansible-deploy:
+  extends: .ansible-base
+  stage: deploy
+  needs: ["terraform:apply:dev"]
+
+ansible:deploy:infra:
+  extends: .ansible-deploy
+  script:
+    - ansible-playbook ansible/playbooks/deploy-app.yml
+        -i ansible/inventory/dev.ini
+        --limit infra
+        --extra-vars "
+          dockerhub_username=${DOCKERHUB_USERNAME}
+          dockerhub_token=${DOCKERHUB_TOKEN}
+          dockerhub_namespace=${DOCKERHUB_NAMESPACE}
+          image_tag=${CI_COMMIT_SHORT_SHA:-latest}
+        "
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
+      when: manual
+  environment:
+    name: dev
+
+ansible:deploy:app:
+  extends: .ansible-deploy
+  script:
+    - ansible-playbook ansible/playbooks/deploy-app.yml
+        -i ansible/inventory/dev.ini
+        --limit app
+        --extra-vars "
+          dockerhub_username=${DOCKERHUB_USERNAME}
+          dockerhub_token=${DOCKERHUB_TOKEN}
+          dockerhub_namespace=${DOCKERHUB_NAMESPACE}
+          image_tag=${CI_COMMIT_SHORT_SHA:-latest}
+        "
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
+      when: manual
+  environment:
+    name: dev

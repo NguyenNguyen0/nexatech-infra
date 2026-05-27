@@ -9,4 +9,5 @@ app-1 ansible_host=PUBLIC_IP private_ip=PRIVATE_IP app_group=app-1 compose_file=
 ansible_user=ubuntu
 aws_region=ap-southeast-1
 ecr_registry=
+dockerhub_namespace=YOUR_DOCKERHUB_NAMESPACE
 image_tag=latest

@@ -4,3 +4,8 @@ env_dir: "{{ deploy_root }}/env"
 aws_region: ap-southeast-1
 ecr_registry: ""
 image_tag: latest
+
+# Docker Hub — set these via Ansible extra-vars or CI environment variables
+# dockerhub_username: ""   # set via --extra-vars or CI var DOCKERHUB_USERNAME
+# dockerhub_token: ""      # set via --extra-vars or CI var DOCKERHUB_TOKEN (secret)
+# dockerhub_namespace: ""  # Docker Hub org/username owning the images
