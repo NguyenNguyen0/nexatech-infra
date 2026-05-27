@@ -21,6 +21,7 @@
   when:
     - service_env_files is defined
     - service_env_files[item] is defined
+    - service_env_files[item] | length > 0
 
 - name: Copy compose file
   ansible.builtin.copy:
