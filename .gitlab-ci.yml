@@ -18,6 +18,7 @@ variables:
   TF_VAR_FILE: "environments/dev.tfvars"
   ANSIBLE_HOST_KEY_CHECKING: "False"
   ANSIBLE_FORCE_COLOR: "true"
+  ANSIBLE_ROLES_PATH: "$CI_PROJECT_DIR/ansible/roles"
 
 # ─────────────────────────────────────────────
 # BASE TEMPLATES
@@ -115,9 +116,8 @@ terraform:apply:dev:
 ansible:deploy:infra:
   extends: .ansible-deploy
   script:
-    - cd ansible
-    - ansible-playbook playbooks/deploy-app.yml
-        -i inventory/dev.ini
+    - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
+        -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit infra
         --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"
   rules:
@@ -129,9 +129,8 @@ ansible:deploy:infra:
 ansible:deploy:app:
   extends: .ansible-deploy
   script:
-    - cd ansible
-    - ansible-playbook playbooks/deploy-app.yml
-        -i inventory/dev.ini
+    - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
+        -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit app
         --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"
   rules:
