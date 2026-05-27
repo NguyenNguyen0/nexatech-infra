@@ -100,6 +100,7 @@ terraform:apply:dev:
   needs: ["terraform:plan:dev"]
   script:
     - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
+    - 'echo "Pipeline backend image tag input: ${PIPELINE_BACKEND_IMAGE_TAG:-<empty>}"'
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - terraform -chdir=$TF_ROOT init
     - terraform -chdir=$TF_ROOT apply -auto-approve -var-file=$TF_VAR_FILE
@@ -131,6 +132,7 @@ ansible:deploy:infra:
   extends: .ansible-deploy
   script:
     - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
+    - 'echo "Pipeline backend image tag input: ${PIPELINE_BACKEND_IMAGE_TAG:-<empty>}"'
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-infra.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
@@ -146,6 +148,7 @@ ansible:deploy:app:
   extends: .ansible-deploy
   script:
     - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
+    - 'echo "Pipeline backend image tag input: ${PIPELINE_BACKEND_IMAGE_TAG:-<empty>}"'
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
