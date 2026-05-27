@@ -88,12 +88,14 @@ terraform:apply:dev:
   stage: apply
   needs: ["terraform:plan:dev"]
   script:
+    - export DEPLOY_IMAGE_TAG="${BACKEND_IMAGE_TAG:-${IMAGE_TAG:-latest}}"
+    - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - terraform -chdir=$TF_ROOT init
     - terraform -chdir=$TF_ROOT apply -auto-approve -var-file=$TF_VAR_FILE
     - terraform -chdir=$TF_ROOT output -json > terraform-output.json
     - apk add --no-cache jq bash
     - chmod +x scripts/render-inventory.sh
-    - DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE IMAGE_TAG=${CI_COMMIT_SHORT_SHA:-latest} bash scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
+    - DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE IMAGE_TAG=$DEPLOY_IMAGE_TAG bash scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
   artifacts:
     paths:
       - terraform-output.json
@@ -117,10 +119,12 @@ terraform:apply:dev:
 ansible:deploy:infra:
   extends: .ansible-deploy
   script:
+    - export DEPLOY_IMAGE_TAG="${BACKEND_IMAGE_TAG:-${IMAGE_TAG:-latest}}"
+    - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-infra.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit infra
-        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"
+        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${DEPLOY_IMAGE_TAG}"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
@@ -130,10 +134,12 @@ ansible:deploy:infra:
 ansible:deploy:app:
   extends: .ansible-deploy
   script:
+    - export DEPLOY_IMAGE_TAG="${BACKEND_IMAGE_TAG:-${IMAGE_TAG:-latest}}"
+    - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit app
-        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"
+        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${DEPLOY_IMAGE_TAG}"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
