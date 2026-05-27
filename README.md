@@ -110,6 +110,13 @@ Service-specific env files are managed by Ansible from:
 ansible/group_vars/dev.secrets.yml
 ```
 
+Recommended flow to avoid editing encrypted YAML from scratch:
+
+```bash
+cp env-templates/dev.secrets.yml.example ansible/group_vars/dev.secrets.yml
+ansible-vault encrypt ansible/group_vars/dev.secrets.yml
+```
+
 That file contains shared values such as RDS, Redis, Mongo, Keycloak, frontend URL, and provider credentials. During deploy, Ansible writes only the relevant files for each host:
 
 ```text
