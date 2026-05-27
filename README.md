@@ -20,6 +20,27 @@ Low-cost AWS infrastructure for NexaTech backend.
 - Ansible
 - AWS credentials with permissions for EC2, VPC, IAM, ECR, RDS, ALB, and S3
 - `jq` for `scripts/render-inventory.sh`
+- `pre-commit` if you want local Git hooks
+
+## Local Hooks
+
+Install the pre-push hook:
+
+```bash
+pre-commit install --hook-type pre-push
+```
+
+Before every push, the hook checks Terraform formatting with:
+
+```bash
+terraform -chdir=terraform fmt -check -recursive
+```
+
+You can run it manually with:
+
+```bash
+pre-commit run terraform-fmt-check --hook-stage pre-push
+```
 
 ## Deploy Dev
 

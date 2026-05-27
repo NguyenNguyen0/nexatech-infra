@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: terraform-fmt-check
+        name: Terraform fmt check
+        entry: terraform -chdir=terraform fmt -check -recursive
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
