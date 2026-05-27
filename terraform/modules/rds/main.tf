@@ -14,10 +14,10 @@ resource "aws_db_instance" "this" {
   password                = var.password
   db_subnet_group_name    = aws_db_subnet_group.this.name
   vpc_security_group_ids  = var.security_group_ids
-  storage_encrypted       = true
+  storage_encrypted       = false
   skip_final_snapshot     = true
   deletion_protection     = false
   publicly_accessible     = false
   multi_az                = false
-  backup_retention_period = 7
+  backup_retention_period = 0
 }

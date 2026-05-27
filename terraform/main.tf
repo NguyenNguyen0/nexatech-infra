@@ -66,11 +66,11 @@ module "iam" {
   name = local.name_prefix
 }
 
-module "ecr" {
-  source = "./modules/ecr"
-
-  repositories = var.ecr_repositories
-}
+# ECR module disabled — images are hosted on Docker Hub
+# module "ecr" {
+#   source = "./modules/ecr"
+#   repositories = var.ecr_repositories
+# }
 
 resource "aws_security_group" "ec2" {
   name        = "${local.name_prefix}-ec2"

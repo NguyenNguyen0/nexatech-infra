@@ -15,15 +15,15 @@ allowed_http_cidrs = ["0.0.0.0/0"]
 # Existing EC2 key pair. Leave null if you use SSM Session Manager.
 key_name = "nexatech-dev"
 
-instance_architecture = "arm64"
-infra_instance_type   = "t4g.medium"
-app1_instance_type    = "t4g.medium"
+instance_architecture = "x86_64"
+infra_instance_type   = "t3.medium"
+app1_instance_type    = "t3.medium"
 enable_app2           = false
-app2_instance_type    = "t4g.small"
-root_volume_size_gb   = 40
+app2_instance_type    = "t3.small"
+root_volume_size_gb   = 30
 
 create_rds            = true
-rds_instance_class    = "db.t4g.micro"
+rds_instance_class    = "db.t3.micro"
 rds_allocated_storage = 20
 rds_engine_version    = "16.3"
 rds_database_name     = "keycloak" # default database for keycloak
@@ -35,4 +35,4 @@ certificate_arn = null
 
 # Bucket names must be globally unique. Example:
 # s3_buckets = ["nexatech-dev-storage-yourname", "nexatech-dev-news-yourname"]
-s3_buckets = ["aws-s3-node-app"]
+s3_buckets = []
