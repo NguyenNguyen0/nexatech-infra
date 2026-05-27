@@ -93,11 +93,9 @@ terraform:apply:dev:
     - terraform -chdir=$TF_ROOT init
     - terraform -chdir=$TF_ROOT apply -auto-approve -var-file=$TF_VAR_FILE
     - terraform -chdir=$TF_ROOT output -json > terraform-output.json
-    - apk add --no-cache jq
+    - apk add --no-cache jq bash
     - chmod +x scripts/render-inventory.sh
-    - DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE
-      IMAGE_TAG=${CI_COMMIT_SHORT_SHA:-latest}
-      bash scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
+    - DOCKERHUB_NAMESPACE=$DOCKERHUB_NAMESPACE IMAGE_TAG=${CI_COMMIT_SHORT_SHA:-latest} bash scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
   artifacts:
     paths:
       - terraform-output.json
