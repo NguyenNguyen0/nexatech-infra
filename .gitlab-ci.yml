@@ -37,15 +37,6 @@ variables:
     - mkdir -p ~/.ssh
     - echo "$ANSIBLE_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - |
-      IPS=$(python3 -c "
-      import json
-      with open('terraform-output.json') as f:
-          d = json.load(f)
-      ips = list(d.get('ec2_public_ips', {}).get('value', {}).values())
-      print(' '.join(ips))
-      " 2>/dev/null || echo "")
-      if [ -n "$IPS" ]; then ssh-keyscan -H $IPS >> ~/.ssh/known_hosts 2>/dev/null; fi
 
 # ─────────────────────────────────────────────
 # STAGE: VALIDATE
