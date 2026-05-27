@@ -40,9 +40,25 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "aws_ssm_parameter" "ubuntu_ami" {
-  count = var.instance_ami_id == null ? 1 : 0
-  name  = "/aws/service/canonical/ubuntu/server/24.04/stable/current/${local.ami_arch}/hvm/ebs-gp3/ami-id"
+data "aws_ami" "ubuntu" {
+  count       = var.instance_ami_id == null ? 1 : 0
+  most_recent = true
+  owners      = ["099720109477"]
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-${local.ami_arch}-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = [var.instance_architecture]
+  }
 }
 
 module "vpc" {
@@ -131,7 +147,7 @@ module "ec2" {
   for_each = local.ec2_instances
 
   name                 = "${local.name_prefix}-${each.key}"
-  ami_id               = var.instance_ami_id != null ? var.instance_ami_id : data.aws_ssm_parameter.ubuntu_ami[0].value
+  ami_id               = var.instance_ami_id != null ? var.instance_ami_id : data.aws_ami.ubuntu[0].id
   instance_type        = each.value.instance_type
   key_name             = var.key_name
   subnet_id            = module.vpc.public_subnet_ids[index(keys(local.ec2_instances), each.key) % length(module.vpc.public_subnet_ids)]
