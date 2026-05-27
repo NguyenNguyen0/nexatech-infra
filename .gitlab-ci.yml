@@ -37,10 +37,15 @@ variables:
     - mkdir -p ~/.ssh
     - echo "$ANSIBLE_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -H $(cat terraform-output.json | python3 -c
-        "import sys,json; d=json.load(sys.stdin);
-         ips=list(d.get('ec2_public_ips',{}).get('value',{}).values());
-         print(' '.join(ips))" 2>/dev/null || echo "") >> ~/.ssh/known_hosts 2>/dev/null || true
+    - |
+      IPS=$(python3 -c "
+      import json
+      with open('terraform-output.json') as f:
+          d = json.load(f)
+      ips = list(d.get('ec2_public_ips', {}).get('value', {}).values())
+      print(' '.join(ips))
+      " 2>/dev/null || echo "")
+      if [ -n "$IPS" ]; then ssh-keyscan -H $IPS >> ~/.ssh/known_hosts 2>/dev/null; fi
 
 # ─────────────────────────────────────────────
 # STAGE: VALIDATE
@@ -119,15 +124,11 @@ terraform:apply:dev:
 ansible:deploy:infra:
   extends: .ansible-deploy
   script:
-    - ansible-playbook ansible/playbooks/deploy-app.yml
-        -i ansible/inventory/dev.ini
+    - cd ansible
+    - ansible-playbook playbooks/deploy-app.yml
+        -i inventory/dev.ini
         --limit infra
-        --extra-vars "
-          dockerhub_username=${DOCKERHUB_USERNAME}
-          dockerhub_token=${DOCKERHUB_TOKEN}
-          dockerhub_namespace=${DOCKERHUB_NAMESPACE}
-          image_tag=${CI_COMMIT_SHORT_SHA:-latest}
-        "
+        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
@@ -137,15 +138,11 @@ ansible:deploy:infra:
 ansible:deploy:app:
   extends: .ansible-deploy
   script:
-    - ansible-playbook ansible/playbooks/deploy-app.yml
-        -i ansible/inventory/dev.ini
+    - cd ansible
+    - ansible-playbook playbooks/deploy-app.yml
+        -i inventory/dev.ini
         --limit app
-        --extra-vars "
-          dockerhub_username=${DOCKERHUB_USERNAME}
-          dockerhub_token=${DOCKERHUB_TOKEN}
-          dockerhub_namespace=${DOCKERHUB_NAMESPACE}
-          image_tag=${CI_COMMIT_SHORT_SHA:-latest}
-        "
+        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${CI_COMMIT_SHORT_SHA:-latest}"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
