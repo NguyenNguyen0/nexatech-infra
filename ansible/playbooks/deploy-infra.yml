@@ -2,10 +2,18 @@
 - name: Deploy NexaTech platform services
   hosts: infra
   become: true
+  vars_files:
+    - ../group_vars/dev.secrets.yml
   vars:
     compose_project_name: nexatech-infra
     compose_src: "{{ playbook_dir }}/../../docker-compose/infra.docker-compose.yml"
     compose_dest: /opt/nexatech/compose/infra.docker-compose.yml
+    service_env_names:
+      - discovery-server
+      - config-server
+      - api-gateway
+      - keycloak
+      - kafka
   roles:
     - docker
     - compose_deploy

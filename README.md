@@ -102,18 +102,51 @@ DOCKERHUB_NAMESPACE=trungnguyen918 IMAGE_TAG=<backend-image-tag> \
   ./scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
 ```
 
-Copy env templates to each EC2 under `/opt/nexatech/env/` and fill real values:
+## Service Env Management
 
-```bash
-scp env-templates/*.env.example ubuntu@INFRA_PUBLIC_IP:/tmp/
-```
-
-Each service expects a file named without `.example`, for example:
+Service-specific env files are managed by Ansible from:
 
 ```text
+ansible/group_vars/dev.secrets.yml
+```
+
+That file contains shared values such as RDS, Redis, Mongo, Keycloak, frontend URL, and provider credentials. During deploy, Ansible writes only the relevant files for each host:
+
+```text
+/opt/nexatech/env/keycloak.env
 /opt/nexatech/env/api-gateway.env
 /opt/nexatech/env/identity-service.env
+/opt/nexatech/env/user-service.env
 ```
+
+Edit the file with real values, especially:
+
+- `frontend_url`
+- `api_public_url`
+- `keycloak_public_url`
+- `rds_endpoint`, `rds_username`, `rds_password`
+- Redis, MongoDB, S3, mail, payment, and shipping credentials
+
+Before committing real values, encrypt the file:
+
+```bash
+ansible-vault encrypt ansible/group_vars/dev.secrets.yml
+```
+
+Edit it later with:
+
+```bash
+ansible-vault edit ansible/group_vars/dev.secrets.yml
+```
+
+For local deploys, provide the vault password:
+
+```bash
+ansible-playbook --ask-vault-pass -i ansible/inventory/dev.ini ansible/playbooks/deploy-infra.yml
+ansible-playbook --ask-vault-pass -i ansible/inventory/dev.ini ansible/playbooks/deploy-app.yml
+```
+
+For GitLab CI, set `ANSIBLE_VAULT_PASSWORD` as a masked and protected variable. The pipeline writes it to a temporary vault password file before running Ansible.
 
 Deploy:
 
@@ -121,6 +154,8 @@ Deploy:
 ansible-playbook -i ansible/inventory/dev.ini ansible/playbooks/deploy-infra.yml
 ansible-playbook -i ansible/inventory/dev.ini ansible/playbooks/deploy-app.yml
 ```
+
+If `dev.secrets.yml` is encrypted, use `--ask-vault-pass` locally or set `ANSIBLE_VAULT_PASSWORD` in CI. If it is still unencrypted with placeholder values, Ansible will deploy those placeholder values, so fill and encrypt it before a real deployment.
 
 ## CI/CD
 
@@ -147,6 +182,7 @@ Required GitLab CI/CD variables:
 
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_REGION`
 - `ANSIBLE_SSH_PRIVATE_KEY_B64`
+- `ANSIBLE_VAULT_PASSWORD` if `ansible/group_vars/dev.secrets.yml` is encrypted
 - `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `DOCKERHUB_NAMESPACE`
 
 The backend project must be allowed to trigger this project with `CI_JOB_TOKEN`, or it must use an infra pipeline trigger token stored as a protected CI variable.

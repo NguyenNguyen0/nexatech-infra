@@ -8,6 +8,20 @@
     - "{{ compose_dir }}"
     - "{{ env_dir }}"
 
+- name: Write service env files
+  ansible.builtin.copy:
+    dest: "{{ env_dir }}/{{ item }}.env"
+    mode: "0600"
+    content: |
+      {% for pair in (service_env_files[item] | default({})) | dict2items %}
+      {{ pair.key }}={{ pair.value }}
+      {% endfor %}
+  loop: "{{ service_env_names | default([]) }}"
+  no_log: true
+  when:
+    - service_env_files is defined
+    - service_env_files[item] is defined
+
 - name: Copy compose file
   ansible.builtin.copy:
     src: "{{ compose_src }}"

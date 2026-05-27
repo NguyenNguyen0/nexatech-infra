@@ -2,10 +2,31 @@
 - name: Deploy NexaTech application services
   hosts: app
   become: true
+  vars_files:
+    - ../group_vars/dev.secrets.yml
   vars:
     compose_project_name: "nexatech-{{ app_group | default('app') }}"
     compose_src: "{{ playbook_dir }}/../../docker-compose/{{ compose_file }}"
     compose_dest: "/opt/nexatech/compose/{{ compose_file }}"
+    app1_service_env_names:
+      - identity-service
+      - user-service
+      - product-service
+      - order-service
+      - inventory-service
+      - payment-service
+      - notification-service
+    app2_service_env_names:
+      - chat-service
+      - shipping-service
+      - news-service
+      - audit-service
+      - storage-service
+      - promotion-service
+      - agent-service
+      - mcp-server
+      - recommendation-service
+    service_env_names: "{{ app2_service_env_names if app_group | default('app-1') == 'app-2' else app1_service_env_names }}"
   roles:
     - docker
     - compose_deploy

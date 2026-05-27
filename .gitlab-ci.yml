@@ -50,6 +50,12 @@ variables:
     - mkdir -p ~/.ssh
     - echo "$ANSIBLE_SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
+    - |
+      if [ -n "${ANSIBLE_VAULT_PASSWORD:-}" ]; then
+        printf '%s' "$ANSIBLE_VAULT_PASSWORD" > ~/.ansible-vault-pass
+        chmod 600 ~/.ansible-vault-pass
+        export ANSIBLE_VAULT_PASSWORD_FILE=~/.ansible-vault-pass
+      fi
 
 # ─────────────────────────────────────────────
 # STAGE: VALIDATE
