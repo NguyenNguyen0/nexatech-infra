@@ -96,6 +96,13 @@ services:
     env_file:
       - path: /opt/nexatech/env/promotion-service.env
         required: false
+    environment:
+      SERVICE_NAME: promotion-service
+      EUREKA_ENABLED: "true"
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      EUREKA_INSTANCE_IP_ADDRESS: ${HOST_PRIVATE_IP}
+      EUREKA_INSTANCE_PORT: "8093"
     ports:
       - "8093:8093"
     networks:

@@ -150,7 +150,7 @@ print_hint_summary() {
 3. If gateway returns 5xx or times out while direct service health is 2xx, check Eureka registration and lb:// route resolution.
 4. If only CloudFront/ALB URL fails but localhost:8080 works, check target group health, security group, Host/X-Forwarded headers, and CloudFront origin policy.
 5. If logs mention issuer-uri/JWK/Keycloak for requests that should be public, the request is matching an authenticated security chain or a downstream service is enforcing JWT.
-6. If promotion through gateway times out on infra-1, check PROMOTION_SERVICE_URI. In the three-EC2 layout it must point to app-2 private IP, for example http://10.20.2.155:8093.
+6. If promotion through gateway returns 503, check Eureka for PROMOTION-SERVICE and ensure PROMOTION_SERVICE_URI is lb://promotion-service.
 EOF
 }
 
