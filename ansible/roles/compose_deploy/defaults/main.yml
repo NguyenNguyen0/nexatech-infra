@@ -7,3 +7,4 @@ image_registry: ""
 image_tag: latest
 deploy_services: ""
 pull_images: true
+compose_no_deps_for_targeted_deploy: true

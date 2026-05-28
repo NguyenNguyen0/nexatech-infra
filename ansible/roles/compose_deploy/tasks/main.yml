@@ -67,6 +67,10 @@
 
 - name: Start services
   ansible.builtin.command:
-    cmd: "docker compose --env-file {{ deploy_root }}/runtime.env -p {{ compose_project_name }} -f {{ compose_dest }} up -d --remove-orphans {{ compose_target_services | join(' ') }}"
+    cmd: >-
+      docker compose --env-file {{ deploy_root }}/runtime.env -p {{ compose_project_name }} -f {{ compose_dest }}
+      up -d --remove-orphans
+      {{ '--no-deps' if (deploy_services | default('') | trim | length > 0 and compose_no_deps_for_targeted_deploy | bool) else '' }}
+      {{ compose_target_services | join(' ') }}
   changed_when: true
   when: compose_target_services | length > 0
