@@ -45,6 +45,7 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       KEYCLOAK_ISSUER_URI: http://${INFRA_PRIVATE_IP}:9000/realms/nexatech
       PROMOTION_SERVICE_URI: http://${APP2_PRIVATE_IP}:8093
+      AGENT_SERVICE_URI: http://${APP2_PRIVATE_IP}:8097
     ports:
       - "8080:8080"
     depends_on:

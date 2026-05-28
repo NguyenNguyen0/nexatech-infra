@@ -110,8 +110,9 @@ services:
     environment:
       EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
       EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      PORT: ${AGENT_SERVICE_PORT:-8097}
     expose:
-      - "8093"
+      - "${AGENT_SERVICE_PORT:-8097}"
     networks:
       - nexatech
 
