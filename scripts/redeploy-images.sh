@@ -5,21 +5,24 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INVENTORY="${INVENTORY:-$ROOT_DIR/ansible/inventory/dev.ini}"
 DOCKERHUB_NAMESPACE="${DOCKERHUB_NAMESPACE:-trungnguyen918}"
 TARGET="${TARGET:-all}"
+DEPLOY_SERVICES="${DEPLOY_SERVICES:-}"
 VAULT_ARGS=()
 
 usage() {
   cat <<'USAGE'
 Usage:
-  scripts/redeploy-images.sh <image-tag> [--target all|infra|app] [--inventory path] [--namespace dockerhub-namespace] [--ask-vault-pass]
+  scripts/redeploy-images.sh <image-tag> [--target all|infra|app] [--services "svc-a svc-b"] [--inventory path] [--namespace dockerhub-namespace] [--ask-vault-pass]
 
 Examples:
   scripts/redeploy-images.sh 1444753
   scripts/redeploy-images.sh 1444753 --target app
+  scripts/redeploy-images.sh 1444753 --target app --services "order-service payment-service"
   DOCKERHUB_USERNAME=... DOCKERHUB_TOKEN=... scripts/redeploy-images.sh 1444753 --ask-vault-pass
 
 Environment:
   INVENTORY             Defaults to ansible/inventory/dev.ini
   DOCKERHUB_NAMESPACE   Defaults to trungnguyen918
+  DEPLOY_SERVICES       Optional space-separated services to redeploy.
   DOCKERHUB_USERNAME    Optional. Used for docker login on EC2 before pull.
   DOCKERHUB_TOKEN       Optional. Used for docker login on EC2 before pull.
 USAGE
@@ -37,6 +40,10 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --target)
       TARGET="${2:-}"
+      shift 2
+      ;;
+    --services)
+      DEPLOY_SERVICES="${2:-}"
       shift 2
       ;;
     --inventory|-i)
@@ -83,6 +90,7 @@ EXTRA_VARS=(
   "dockerhub_token=${DOCKERHUB_TOKEN:-}"
   "dockerhub_namespace=$DOCKERHUB_NAMESPACE"
   "image_tag=$IMAGE_TAG"
+  "deploy_services='$DEPLOY_SERVICES'"
 )
 
 run_playbook() {

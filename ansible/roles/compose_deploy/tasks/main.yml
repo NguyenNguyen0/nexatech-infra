@@ -35,6 +35,19 @@
     dest: "{{ deploy_root }}/runtime.env"
     mode: "0600"
 
+- name: Select services for this host
+  ansible.builtin.set_fact:
+    compose_target_services: >-
+      {{
+        service_env_names
+        if (deploy_services | default('') | trim | length == 0)
+        else service_env_names | intersect((deploy_services | trim).split())
+      }}
+
+- name: Show selected compose services
+  ansible.builtin.debug:
+    msg: "Selected services: {{ compose_target_services | join(' ') if compose_target_services | length > 0 else '<none>' }}"
+
 - name: Login to Docker Hub when credentials are configured
   ansible.builtin.shell: "echo '{{ dockerhub_token }}' | docker login --username '{{ dockerhub_username }}' --password-stdin"
   changed_when: false
@@ -42,13 +55,16 @@
   when:
     - dockerhub_username | default('') | length > 0
     - dockerhub_token | default('') | length > 0
+    - compose_target_services | length > 0
 
 - name: Pull images
   ansible.builtin.command:
-    cmd: "docker compose --env-file {{ deploy_root }}/runtime.env -f {{ compose_dest }} pull"
+    cmd: "docker compose --env-file {{ deploy_root }}/runtime.env -f {{ compose_dest }} pull {{ compose_target_services | join(' ') }}"
   changed_when: true
+  when: compose_target_services | length > 0
 
 - name: Start services
   ansible.builtin.command:
-    cmd: "docker compose --env-file {{ deploy_root }}/runtime.env -p {{ compose_project_name }} -f {{ compose_dest }} up -d --remove-orphans"
+    cmd: "docker compose --env-file {{ deploy_root }}/runtime.env -p {{ compose_project_name }} -f {{ compose_dest }} up -d --remove-orphans {{ compose_target_services | join(' ') }}"
   changed_when: true
+  when: compose_target_services | length > 0

@@ -3,6 +3,9 @@ spec:
     backend_image_tag:
       default: ""
       description: "Docker image tag built by nexatech-backend."
+    changed_services:
+      default: ""
+      description: "Space-separated backend services that should be redeployed."
     image_tag:
       default: latest
       description: "Fallback Docker image tag for manual infra pipelines."
@@ -29,6 +32,7 @@ variables:
   ANSIBLE_FORCE_COLOR: "true"
   ANSIBLE_ROLES_PATH: "$CI_PROJECT_DIR/ansible/roles"
   PIPELINE_BACKEND_IMAGE_TAG: "$[[ inputs.backend_image_tag ]]"
+  PIPELINE_CHANGED_SERVICES: "$[[ inputs.changed_services ]]"
   PIPELINE_IMAGE_TAG: "$[[ inputs.image_tag ]]"
 
 # ─────────────────────────────────────────────
@@ -107,6 +111,7 @@ terraform:apply:dev:
   script:
     - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
     - 'echo "Pipeline backend image tag input: ${PIPELINE_BACKEND_IMAGE_TAG:-<empty>}"'
+    - 'echo "Changed services input: ${PIPELINE_CHANGED_SERVICES:-<all>}"'
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - terraform -chdir=$TF_ROOT init
     - terraform -chdir=$TF_ROOT apply -auto-approve -var-file=$TF_VAR_FILE
@@ -139,11 +144,12 @@ ansible:deploy:infra:
   script:
     - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
     - 'echo "Pipeline backend image tag input: ${PIPELINE_BACKEND_IMAGE_TAG:-<empty>}"'
+    - 'echo "Changed services input: ${PIPELINE_CHANGED_SERVICES:-<all>}"'
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-infra.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit infra
-        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${DEPLOY_IMAGE_TAG}"
+        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${DEPLOY_IMAGE_TAG} deploy_services='${PIPELINE_CHANGED_SERVICES}'"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
@@ -155,11 +161,12 @@ ansible:deploy:app:
   script:
     - export DEPLOY_IMAGE_TAG="${PIPELINE_BACKEND_IMAGE_TAG:-${PIPELINE_IMAGE_TAG:-latest}}"
     - 'echo "Pipeline backend image tag input: ${PIPELINE_BACKEND_IMAGE_TAG:-<empty>}"'
+    - 'echo "Changed services input: ${PIPELINE_CHANGED_SERVICES:-<all>}"'
     - 'echo "Deploy image tag: $DEPLOY_IMAGE_TAG"'
     - ansible-playbook $CI_PROJECT_DIR/ansible/playbooks/deploy-app.yml
         -i $CI_PROJECT_DIR/ansible/inventory/dev.ini
         --limit app
-        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${DEPLOY_IMAGE_TAG}"
+        --extra-vars "dockerhub_username=${DOCKERHUB_USERNAME} dockerhub_token=${DOCKERHUB_TOKEN} dockerhub_namespace=${DOCKERHUB_NAMESPACE} image_tag=${DEPLOY_IMAGE_TAG} deploy_services='${PIPELINE_CHANGED_SERVICES}'"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
       when: manual
