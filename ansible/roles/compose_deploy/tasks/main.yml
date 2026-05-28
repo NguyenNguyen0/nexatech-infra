@@ -61,7 +61,9 @@
   ansible.builtin.command:
     cmd: "docker compose --env-file {{ deploy_root }}/runtime.env -f {{ compose_dest }} pull {{ compose_target_services | join(' ') }}"
   changed_when: true
-  when: compose_target_services | length > 0
+  when:
+    - compose_target_services | length > 0
+    - pull_images | bool
 
 - name: Start services
   ansible.builtin.command:

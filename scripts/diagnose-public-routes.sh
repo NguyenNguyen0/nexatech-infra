@@ -8,6 +8,7 @@ LOG_LINES="${LOG_LINES:-300}"
 COMPOSE_DIR="${COMPOSE_DIR:-/opt/nexatech/compose}"
 RUNTIME_ENV="${RUNTIME_ENV:-/opt/nexatech/runtime.env}"
 ENV_DIR="${ENV_DIR:-/opt/nexatech/env}"
+CORS_ORIGIN="${CORS_ORIGIN:-https://nexatech-frontend-client.vercel.app}"
 
 GATEWAY_PUBLIC_PATHS=(
   "/actuator/health"
@@ -100,11 +101,27 @@ redact_file() {
     return
   fi
 
-  awk -F= -v re="$SENSITIVE_RE" '
+  read_file "$file" | awk -F= -v re="$SENSITIVE_RE" '
     /^[[:space:]]*#/ || NF < 2 { print; next }
     toupper($1) ~ re { print $1"=<redacted>"; next }
     { print }
-  ' "$file"
+  '
+}
+
+read_file() {
+  local file="$1"
+  if [ -r "$file" ]; then
+    cat "$file"
+  elif have sudo; then
+    sudo -n cat "$file" 2>/dev/null || echo "permission denied: $file"
+  else
+    echo "permission denied: $file"
+  fi
+}
+
+runtime_value() {
+  local key="$1"
+  read_file "$RUNTIME_ENV" | awk -F= -v k="$key" '$1 == k {print $2; exit}' 2>/dev/null
 }
 
 docker_compose_files() {
@@ -144,6 +161,7 @@ section "NexaTech public route diagnosis"
   echo "host=$(hostname -f 2>/dev/null || hostname)"
   echo "user=$(id -un)"
   echo "base_url=$BASE_URL"
+  echo "cors_origin=$CORS_ORIGIN"
   echo "report=$REPORT"
   echo "curl_timeout=$CURL_TIMEOUT"
 } | tee -a "$REPORT"
@@ -222,6 +240,11 @@ if have docker; then
 fi
 
 if have curl; then
+  APP1_PRIVATE_IP="${APP1_PRIVATE_IP:-$(runtime_value APP1_PRIVATE_IP)}"
+  APP2_PRIVATE_IP="${APP2_PRIVATE_IP:-$(runtime_value APP2_PRIVATE_IP)}"
+  APP1_HOST="${APP1_PRIVATE_IP:-127.0.0.1}"
+  APP2_HOST="${APP2_PRIVATE_IP:-127.0.0.1}"
+
   section "Local service health checks"
   for item in "${SERVICE_HEALTHS[@]}"; do
     name="${item%%:*}"
@@ -239,16 +262,17 @@ if have curl; then
   section "Gateway CORS preflight checks"
   for path in "/api/v1/products" "/api/v1/news" "/api/v1/auth/login"; do
     echo "--- OPTIONS $BASE_URL$path ---" | tee -a "$REPORT"
-    curl_status OPTIONS "$BASE_URL$path" "https://example.com" | tee -a "$REPORT"
+    curl_status OPTIONS "$BASE_URL$path" "$CORS_ORIGIN" | tee -a "$REPORT"
   done
 
   section "Direct service public endpoint probes"
   for url in \
-    "http://127.0.0.1:8090/api/v1/products" \
-    "http://127.0.0.1:8090/api/v1/categories" \
-    "http://127.0.0.1:8092/api/v1/news" \
-    "http://127.0.0.1:8093/api/v1/promotions" \
-    "http://127.0.0.1:8095/recommend/popular"; do
+    "http://$APP1_HOST:8090/api/v1/products" \
+    "http://$APP1_HOST:8090/api/v1/categories" \
+    "http://$APP2_HOST:8092/api/v1/news" \
+    "http://$APP2_HOST:8093/api/v1/promotions" \
+    "http://$APP2_HOST:8095/recommend/popular" \
+    "http://$APP2_HOST:8097/health"; do
     echo "--- GET $url ---" | tee -a "$REPORT"
     curl_status GET "$url" | tee -a "$REPORT"
   done
