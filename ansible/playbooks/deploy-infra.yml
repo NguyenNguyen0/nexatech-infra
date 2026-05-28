@@ -8,12 +8,25 @@
     compose_project_name: nexatech-infra
     compose_src: "{{ playbook_dir }}/../../docker-compose/infra.docker-compose.yml"
     compose_dest: /opt/nexatech/compose/infra.docker-compose.yml
+    keycloak_realm_import_src: "{{ playbook_dir }}/../../../nexatech-backend/_realms/realm-export.json"
     service_env_names:
       - discovery-server
       - config-server
       - api-gateway
       - keycloak
       - kafka
+  pre_tasks:
+    - name: Create Keycloak import directory
+      ansible.builtin.file:
+        path: /opt/nexatech/keycloak
+        state: directory
+        mode: "0755"
+
+    - name: Copy Keycloak realm import
+      ansible.builtin.copy:
+        src: "{{ keycloak_realm_import_src }}"
+        dest: /opt/nexatech/keycloak/realm-export.json
+        mode: "0644"
   roles:
     - docker
     - compose_deploy

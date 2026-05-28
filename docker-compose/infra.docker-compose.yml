@@ -43,6 +43,8 @@ services:
       EUREKA_INSTANCE_HOSTNAME: api-gateway
       EUREKA_ENABLED: "true"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      KEYCLOAK_ISSUER_URI: http://${INFRA_PRIVATE_IP}:9000/realms/nexatech
+      PROMOTION_SERVICE_URI: http://${APP2_PRIVATE_IP}:8093
     ports:
       - "8080:8080"
     depends_on:
@@ -54,12 +56,14 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.5.2
     restart: unless-stopped
-    command: ["start", "--http-enabled=true", "--hostname-strict=false"]
+    command: ["start", "--http-enabled=true", "--hostname-strict=false", "--import-realm"]
     env_file:
       - path: /opt/nexatech/env/keycloak.env
         required: false
     ports:
       - "9000:8080"
+    volumes:
+      - /opt/nexatech/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     networks:
       - nexatech
 

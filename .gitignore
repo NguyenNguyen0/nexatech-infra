@@ -4,6 +4,7 @@
 *.tfplan
 crash.log
 crash.*.log
+*.log
 override.tf
 override.tf.json
 *_override.tf
