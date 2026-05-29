@@ -224,6 +224,15 @@ The backend project must be allowed to trigger this project with `CI_JOB_TOKEN`,
 
 ## Build And Deploy All Services
 
+Common commands are also wrapped in the repo `Makefile`:
+
+```bash
+make help
+make build-backend
+make redeploy IMAGE_TAG=<backend-image-tag>
+make redeploy-services SERVICES="user-service order-service" IMAGE_TAG=<backend-image-tag>
+```
+
 Build and push every backend image from the backend repository:
 
 ```bash
