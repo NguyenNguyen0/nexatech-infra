@@ -222,6 +222,52 @@ Required GitLab CI/CD variables:
 
 The backend project must be allowed to trigger this project with `CI_JOB_TOKEN`, or it must use an infra pipeline trigger token stored as a protected CI variable.
 
+## Build And Deploy All Services
+
+Build and push every backend image from the backend repository:
+
+```bash
+cd ../nexatech-backend
+DOCKERHUB_USERNAME=<dockerhub-user> \
+DOCKERHUB_TOKEN=<dockerhub-token> \
+DOCKERHUB_NAMESPACE=trungnguyen918 \
+DOCKER_BUILD_PARALLELISM=4 \
+  _scripts/build-push-all-dockerhub.sh
+```
+
+The script tags images with `git rev-parse --short main`. Capture that tag before deploying:
+
+```bash
+BACKEND_IMAGE_TAG="$(git -C ../nexatech-backend rev-parse --short main)"
+```
+
+Deploy all infra and app services with that image tag:
+
+```bash
+cd ../nexatech-infra
+DOCKERHUB_USERNAME=<dockerhub-user> \
+DOCKERHUB_TOKEN=<dockerhub-token> \
+DOCKERHUB_NAMESPACE=trungnguyen918 \
+  scripts/redeploy-images.sh "$BACKEND_IMAGE_TAG" --target all --ask-vault-pass
+```
+
+If the Ansible inventory has not been rendered for the current Terraform output yet:
+
+```bash
+terraform -chdir=terraform output -json > terraform-output.json
+DOCKERHUB_NAMESPACE=trungnguyen918 IMAGE_TAG="$BACKEND_IMAGE_TAG" \
+  ./scripts/render-inventory.sh terraform-output.json ansible/inventory/dev.ini
+```
+
+To deploy only application services after images are already pushed:
+
+```bash
+DOCKERHUB_USERNAME=<dockerhub-user> \
+DOCKERHUB_TOKEN=<dockerhub-token> \
+DOCKERHUB_NAMESPACE=trungnguyen918 \
+  scripts/redeploy-images.sh "$BACKEND_IMAGE_TAG" --target app --ask-vault-pass
+```
+
 ## Runtime Services
 
 - Kafka uses `apache/kafka:3.7.2`. It advertises `EXTERNAL://${INFRA_PRIVATE_IP}:9092` so app nodes can connect across the VPC. Do not use `localhost` for the deployed Kafka advertised listener.
