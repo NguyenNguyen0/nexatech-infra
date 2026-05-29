@@ -93,6 +93,7 @@ services:
   promotion-service:
     image: ${IMAGE_REGISTRY}/promotion-service:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    command: ["sh", "-c", "npm run migrate && node dist/main"]
     env_file:
       - path: /opt/nexatech/env/promotion-service.env
         required: false
