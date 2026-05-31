@@ -43,7 +43,6 @@ services:
       EUREKA_INSTANCE_HOSTNAME: api-gateway
       EUREKA_ENABLED: "true"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
-      KEYCLOAK_ISSUER_URI: http://${INFRA_PRIVATE_IP}:9000/realms/nexatech
       PROMOTION_SERVICE_URI: lb://promotion-service
       AGENT_SERVICE_URI: http://${APP2_PRIVATE_IP}:8097
     ports:
@@ -51,6 +50,29 @@ services:
     depends_on:
       - config-server
       - discovery-server
+    networks:
+      - nexatech
+
+  kong:
+    image: kong:3.9
+    restart: unless-stopped
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_STATUS_LISTEN: 0.0.0.0:8100
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8100:8100"
+    volumes:
+      - /opt/nexatech/kong/kong.yml:/kong/declarative/kong.yml:ro
+    depends_on:
+      - api-gateway
     networks:
       - nexatech
 

@@ -1,0 +1,157 @@
+_format_version: "3.0"
+
+services:
+  - name: api-gateway
+    url: http://api-gateway:8080
+    connect_timeout: 10000
+    read_timeout: 60000
+    write_timeout: 10000
+    retries: 3
+    routes:
+      - name: identity-route
+        paths:
+          - /api/v1/auth
+        strip_path: false
+
+      - name: api-gateway-health-route
+        paths:
+          - /actuator/health
+        strip_path: false
+
+      - name: user-route
+        paths:
+          - /api/v1/users
+          - /api/v1/groups
+          - /api/v1/roles
+          - /api/v1/permissions
+        strip_path: false
+
+      - name: product-route
+        paths:
+          - /api/v1/products
+          - /api/v1/categories
+          - /api/v1/brands
+          - /api/v1/reviews
+          - /api/v1/admin/products
+        strip_path: false
+
+      - name: order-route
+        paths:
+          - /api/v1/orders
+          - /api/v1/cart
+          - /api/v1/checkout
+          - /api/v1/returns
+          - /api/v1/admin/orders
+          - /api/v1/admin/audit/orders
+          - /api/v1/admin/audit/trace
+        strip_path: false
+
+      - name: inventory-route
+        paths:
+          - /api/v1/inventory
+        strip_path: false
+
+      - name: payment-route
+        paths:
+          - /api/v1/payments
+          - /api/v1/admin/payments
+          - /api/v1/admin/audit/payments
+          - /payment/vnpay
+        strip_path: false
+
+      - name: shipping-route
+        paths:
+          - /api/v1/shipping
+        strip_path: false
+
+      - name: notification-route
+        paths:
+          - /api/v1/notifications
+          - /api/v1/admin/notifications
+        strip_path: false
+
+      - name: chat-route
+        paths:
+          - /api/v1/conversations
+        strip_path: false
+
+      - name: chat-ws-route
+        paths:
+          - /ws/chat
+        strip_path: false
+
+      - name: storage-route
+        paths:
+          - /api/v1/files
+        strip_path: false
+
+      - name: news-route
+        paths:
+          - /api/v1/news
+        strip_path: false
+
+      - name: audit-route
+        paths:
+          - /api/v1/admin/audit
+        strip_path: false
+
+      - name: promotion-route
+        paths:
+          - /api/v1/promotions
+          - /api/v1/flash-sales
+          - /api/v1/admin/promotions
+          - /api/v1/admin/flash-sales
+          - /api/v1/internal/promotions
+        strip_path: false
+
+      - name: agent-route
+        paths:
+          - /api/v1/agent
+        strip_path: false
+
+      - name: mcp-route
+        paths:
+          - /api/v1/mcp
+        strip_path: false
+
+      - name: recommendation-route
+        paths:
+          - /api/v1/recommend
+          - /api/v1/recommendations
+          - /api/v1/behaviors
+        strip_path: false
+
+plugins:
+  - name: cors
+    config:
+      origins:
+{% for origin in (frontend_allowed_origins | default('')).split(',') | map('trim') | reject('equalto', '') %}
+        - {{ origin }}
+{% endfor %}
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Content-Type
+        - Authorization
+        - X-User-Id
+        - X-User-Role
+        - X-User-Email
+        - X-Guest-Session-Id
+        - X-Correlation-Id
+        - Idempotency-Key
+        - X-Requested-With
+      exposed_headers:
+        - X-Total-Count
+        - X-Correlation-Id
+      credentials: true
+      max_age: 3600
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local

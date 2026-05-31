@@ -8,25 +8,90 @@
     compose_project_name: nexatech-infra
     compose_src: "{{ playbook_dir }}/../../docker-compose/infra.docker-compose.yml"
     compose_dest: /opt/nexatech/compose/infra.docker-compose.yml
+    force_recreate_kong: false
     keycloak_realm_import_src: "{{ playbook_dir }}/../../../nexatech-backend/_realms/realm-export.json"
+    kong_config_template_src: "{{ playbook_dir }}/../templates/kong.yml.j2"
+    create_rds_databases_script_src: "{{ playbook_dir }}/../../scripts/create-rds-databases.sh"
+    create_rds_databases_script_dest: /opt/nexatech/scripts/create-rds-databases.sh
+    diagnose_infra_cors_script_src: "{{ playbook_dir }}/../../scripts/diagnose-infra-cors.sh"
+    diagnose_infra_cors_script_dest: /opt/nexatech/scripts/diagnose-infra-cors.sh
+    rds_database_names:
+      - keycloak
+      - nexatech_identity
+      - nexatech_users
+      - nexatech_orders
+      - nexatech_inventory
+      - nexatech_payments
+      - nexatech_shipping
+      - nexatech_notifications
+      - nexatech_chats
+      - nexatech_news
+      - nexatech_promotions
+      - nexatech_agent
     service_env_names:
       - discovery-server
       - config-server
       - api-gateway
+      - kong
       - keycloak
       - kafka
   pre_tasks:
-    - name: Create Keycloak import directory
+    - name: Create infra asset directories
       ansible.builtin.file:
-        path: /opt/nexatech/keycloak
+        path: "{{ item }}"
         state: directory
         mode: "0755"
+      loop:
+        - /opt/nexatech/keycloak
+        - /opt/nexatech/kong
+        - /opt/nexatech/scripts
 
     - name: Copy Keycloak realm import
       ansible.builtin.copy:
         src: "{{ keycloak_realm_import_src }}"
         dest: /opt/nexatech/keycloak/realm-export.json
         mode: "0644"
+
+    - name: Render Kong declarative config
+      ansible.builtin.template:
+        src: "{{ kong_config_template_src }}"
+        dest: /opt/nexatech/kong/kong.yml
+        mode: "0644"
+      register: kong_config_result
+
+    - name: Install PostgreSQL client
+      ansible.builtin.apt:
+        name: postgresql-client
+        state: present
+        update_cache: true
+
+    - name: Copy RDS database creation script
+      ansible.builtin.copy:
+        src: "{{ create_rds_databases_script_src }}"
+        dest: "{{ create_rds_databases_script_dest }}"
+        mode: "0755"
+
+    - name: Copy infra CORS diagnosis script
+      ansible.builtin.copy:
+        src: "{{ diagnose_infra_cors_script_src }}"
+        dest: "{{ diagnose_infra_cors_script_dest }}"
+        mode: "0755"
+
+    - name: Ensure RDS databases exist
+      ansible.builtin.command:
+        argv: "{{ [create_rds_databases_script_dest, rds_endpoint, rds_username] + rds_database_names }}"
+      environment:
+        PGPASSWORD: "{{ rds_password }}"
+      register: rds_database_result
+      changed_when: "'CREATE DATABASE' in (rds_database_result.stdout | default(''))"
   roles:
     - docker
     - compose_deploy
+  post_tasks:
+    - name: Reload Kong when declarative config changes
+      ansible.builtin.command:
+        cmd: >-
+          docker compose --env-file {{ deploy_root }}/runtime.env -p {{ compose_project_name }} -f {{ compose_dest }}
+          up -d --no-deps --force-recreate kong
+      changed_when: true
+      when: kong_config_result.changed or force_recreate_kong | bool

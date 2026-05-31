@@ -6,11 +6,11 @@ AWS infrastructure and deploy automation for NexaTech backend.
 
 - VPC with public/private subnets.
 - EC2 nodes:
-  - `infra-1`: discovery-server, config-server, api-gateway, Keycloak, Kafka.
+  - `infra-1`: Kong, discovery-server, config-server, api-gateway, Keycloak, Kafka.
   - `app-1`: core Java services.
   - `app-2`: shipping, news, audit, chat, storage, promotion, Python services.
 - Optional RDS PostgreSQL.
-- Optional public ALB routing to `api-gateway`.
+- Optional public ALB routing to Kong on `infra-1`, with Kong forwarding API traffic to `api-gateway`.
 - Optional private S3 buckets for storage/news assets.
 
 The current dev sizing is intentionally not free-tier sized:

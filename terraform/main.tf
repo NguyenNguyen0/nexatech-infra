@@ -127,6 +127,14 @@ resource "aws_security_group" "ec2" {
   }
 
   ingress {
+    description = "Kong proxy direct access"
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_http_cidrs
+  }
+
+  ingress {
     description = "Service mesh within VPC"
     from_port   = 0
     to_port     = 65535
@@ -211,7 +219,7 @@ module "alb" {
   subnet_ids         = module.vpc.public_subnet_ids
   allowed_cidrs      = var.allowed_http_cidrs
   target_instance_id = module.ec2["infra-1"].instance_id
-  target_port        = 8080
+  target_port        = 8000
   certificate_arn    = var.certificate_arn
 }
 

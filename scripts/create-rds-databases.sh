@@ -30,6 +30,7 @@ if [ "${#databases[@]}" -eq 0 ]; then
     nexatech_chats
     nexatech_news
     nexatech_promotions
+    nexatech_agent
   )
 fi
 
@@ -44,14 +45,36 @@ if [ -z "${PGPASSWORD:-}" ]; then
 fi
 
 for database in "${databases[@]}"; do
+  if [[ ! "$database" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    echo "Invalid database name: $database" >&2
+    exit 1
+  fi
+
   echo "Ensuring database: $database"
+  exists="$(
+    psql \
+      --no-psqlrc \
+      --host "$host" \
+      --port "$port" \
+      --username "$username" \
+      --dbname postgres \
+      --set ON_ERROR_STOP=1 \
+      --tuples-only \
+      --no-align \
+      --command "SELECT 1 FROM pg_database WHERE datname = '$database'"
+  )"
+
+  if [ "$exists" = "1" ]; then
+    echo "Database already exists: $database"
+    continue
+  fi
+
   psql \
+    --no-psqlrc \
     --host "$host" \
     --port "$port" \
     --username "$username" \
     --dbname postgres \
     --set ON_ERROR_STOP=1 \
-    --tuples-only \
-    --no-align \
-    --command "SELECT 'CREATE DATABASE ${database}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${database}')\\gexec"
+    --command "CREATE DATABASE \"$database\""
 done

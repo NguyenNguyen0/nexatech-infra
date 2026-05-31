@@ -126,7 +126,7 @@ variable "rds_engine_version" {
 variable "rds_database_name" {
   description = "Initial PostgreSQL database name."
   type        = string
-  default     = "nexatech"
+  default     = "keycloak"
 }
 
 variable "rds_username" {
