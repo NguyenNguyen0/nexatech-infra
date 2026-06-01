@@ -226,7 +226,7 @@ fi
 
 if have docker; then
   section "Container env highlights"
-  for service in api-gateway config-server discovery-server keycloak product-service news-service promotion-service recommendation-service agent-service mcp-server; do
+  for service in api-gateway config-server discovery-server keycloak identity-service user-service notification-service product-service news-service promotion-service recommendation-service agent-service mcp-server; do
     cid="$(docker ps --format '{{.ID}} {{.Names}}' | awk -v n="$service" '$2 == n || $2 ~ n {print $1; exit}')"
     if [ -n "$cid" ]; then
       echo "--- $service ($cid) ---" | tee -a "$REPORT"
@@ -294,7 +294,7 @@ fi
 
 if have docker; then
   section "Recent suspicious logs"
-  for service in api-gateway config-server discovery-server keycloak identity-service product-service news-service promotion-service recommendation-service agent-service mcp-server; do
+  for service in api-gateway config-server discovery-server keycloak identity-service user-service notification-service product-service news-service promotion-service recommendation-service agent-service mcp-server; do
     echo "--- $service ---" | tee -a "$REPORT"
     docker_logs_for "$service" | tee -a "$REPORT"
   done
