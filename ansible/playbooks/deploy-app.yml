@@ -35,6 +35,11 @@
       - recommendation-service
     service_env_names: "{{ app2_service_env_names if app_group | default('app-1') == 'app-2' else app1_service_env_names }}"
   pre_tasks:
+    - name: Ensure Ansible remote temp directory is writable
+      ansible.builtin.raw: "mkdir -p /tmp/ansible-remote-ubuntu && chmod 700 /tmp/ansible-remote-ubuntu && chown {{ ansible_user | default('ubuntu') }}:{{ ansible_user | default('ubuntu') }} /tmp/ansible-remote-ubuntu"
+      become: true
+      changed_when: false
+
     - name: Use private Keycloak URL for identity-service admin calls
       ansible.builtin.set_fact:
         service_env_files: >-

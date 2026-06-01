@@ -83,6 +83,8 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --web.enable-lifecycle
+      - --web.external-url=${CLOUDFRONT_API_URL:-http://localhost:9090}/prometheus
+      - --web.route-prefix=/prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -100,6 +102,13 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${CLOUDFRONT_API_URL:-http://localhost:3005}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SERVER_DOMAIN: ${CLOUDFRONT_API_DOMAIN_NAME:-localhost}
+      GF_SECURITY_COOKIE_SECURE: "true"
+      GF_SECURITY_COOKIE_SAMESITE: lax
+      GF_SECURITY_CSRF_TRUSTED_ORIGINS: ${CLOUDFRONT_API_URL:-http://localhost:3005}
+      GF_LIVE_ALLOWED_ORIGINS: ${CLOUDFRONT_API_URL:-http://localhost:3005}
     ports:
       - "3005:3000"
     volumes:

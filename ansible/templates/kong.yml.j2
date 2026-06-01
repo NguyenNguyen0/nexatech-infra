@@ -13,6 +13,49 @@ services:
           - /api/v1/auth
         strip_path: false
 
+      - name: public-product-read-route
+        paths:
+          - ~/api/v1/products$
+          - ~/api/v1/products/(slug|catalog-version|featured|search|tags|category)(?:/.*)?$
+          - ~/api/v1/products/[^/]+/(related|reviews)$
+          - /api/v1/categories
+          - /api/v1/brands
+          - /api/v1/reviews
+        methods:
+          - GET
+        strip_path: false
+
+      - name: public-news-read-route
+        paths:
+          - /api/v1/news
+        methods:
+          - GET
+        strip_path: false
+
+      - name: public-promotion-read-route
+        paths:
+          - /api/v1/promotions
+          - /api/v1/flash-sales
+        methods:
+          - GET
+        strip_path: false
+
+      - name: public-recommendation-read-route
+        paths:
+          - /api/v1/recommend
+          - /api/v1/recommendations
+        methods:
+          - GET
+        strip_path: false
+
+      - name: public-checkout-route
+        paths:
+          - /api/v1/checkout
+          - /api/v1/orders
+          - /api/v1/cart
+          - /api/v1/conversations
+        strip_path: false
+
       - name: api-gateway-health-route
         paths:
           - /actuator/health
@@ -78,6 +121,9 @@ services:
       - name: chat-ws-route
         paths:
           - /ws/chat
+        protocols:
+          - http
+          - https
         strip_path: false
 
       - name: storage-route
@@ -121,8 +167,71 @@ services:
           - /api/v1/behaviors
         strip_path: false
 
+  - name: grafana
+    url: http://grafana:3000
+    connect_timeout: 10000
+    read_timeout: 60000
+    write_timeout: 10000
+    retries: 3
+    routes:
+      - name: grafana-route
+        paths:
+          - /grafana
+        protocols:
+          - http
+          - https
+        strip_path: false
+
+  - name: prometheus
+    url: http://prometheus:9090
+    connect_timeout: 10000
+    read_timeout: 60000
+    write_timeout: 10000
+    retries: 3
+    routes:
+      - name: prometheus-route
+        paths:
+          - /prometheus
+        strip_path: false
+
 plugins:
   - name: prometheus
+  - name: request-transformer
+    route: identity-route
+    config:
+      remove:
+        headers:
+          - Authorization
+  - name: request-transformer
+    route: public-product-read-route
+    config:
+      remove:
+        headers:
+          - Authorization
+  - name: request-transformer
+    route: public-news-read-route
+    config:
+      remove:
+        headers:
+          - Authorization
+  - name: request-transformer
+    route: public-promotion-read-route
+    config:
+      remove:
+        headers:
+          - Authorization
+  - name: request-transformer
+    route: public-recommendation-read-route
+    config:
+      remove:
+        headers:
+          - Authorization
+  - name: request-transformer
+    route: public-checkout-route
+    config:
+      remove:
+        headers:
+          - Authorization
   - name: cors
     config:
       origins:

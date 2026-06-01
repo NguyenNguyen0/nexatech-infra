@@ -10,7 +10,7 @@ DOCKERHUB_NAMESPACE ?= trungnguyen918
 DOCKER_BUILD_PARALLELISM ?= 4
 IMAGE_TAG ?= $(shell git -C $(BACKEND_DIR) rev-parse --short main 2>/dev/null || echo latest)
 VAULT_ARGS ?= --ask-vault-pass
-ANSIBLE_TEMP_ENV := ANSIBLE_LOCAL_TEMP=/tmp/ansible-local ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote
+ANSIBLE_TEMP_ENV := ANSIBLE_LOCAL_TEMP=/tmp/ansible-local ANSIBLE_REMOTE_TEMP=/tmp/ansible-remote-ubuntu
 
 .DEFAULT_GOAL := help
 

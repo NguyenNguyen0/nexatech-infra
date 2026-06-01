@@ -20,10 +20,6 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets:
-          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8082
-        labels:
-          service: identity-service
-      - targets:
           - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8083
         labels:
           service: user-service

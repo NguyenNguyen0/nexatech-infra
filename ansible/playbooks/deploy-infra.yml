@@ -36,9 +36,16 @@
       - config-server
       - api-gateway
       - kong
+      - prometheus
+      - grafana
       - keycloak
       - kafka
   pre_tasks:
+    - name: Ensure Ansible remote temp directory is writable
+      ansible.builtin.raw: "mkdir -p /tmp/ansible-remote-ubuntu && chmod 700 /tmp/ansible-remote-ubuntu && chown {{ ansible_user | default('ubuntu') }}:{{ ansible_user | default('ubuntu') }} /tmp/ansible-remote-ubuntu"
+      become: true
+      changed_when: false
+
     - name: Create infra asset directories
       ansible.builtin.file:
         path: "{{ item }}"
