@@ -1,0 +1,83 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - prometheus:9090
+
+  - job_name: kong-gateway
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - kong:8001
+        labels:
+          service: kong-gateway
+
+  - job_name: app-1-services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8082
+        labels:
+          service: identity-service
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8083
+        labels:
+          service: user-service
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8090
+        labels:
+          service: product-service
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8084
+        labels:
+          service: order-service
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8085
+        labels:
+          service: inventory-service
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8086
+        labels:
+          service: payment-service
+      - targets:
+          - {{ hostvars[groups['app'][0]].private_ip | default(hostvars[groups['app'][0]].ansible_host) }}:8087
+        labels:
+          service: notification-service
+
+{% if groups['app'] | length > 1 %}
+  - job_name: app-2-spring-services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - {{ hostvars[groups['app'][1]].private_ip | default(hostvars[groups['app'][1]].ansible_host) }}:8088
+        labels:
+          service: storage-service
+      - targets:
+          - {{ hostvars[groups['app'][1]].private_ip | default(hostvars[groups['app'][1]].ansible_host) }}:8089
+        labels:
+          service: chat-service
+      - targets:
+          - {{ hostvars[groups['app'][1]].private_ip | default(hostvars[groups['app'][1]].ansible_host) }}:8091
+        labels:
+          service: shipping-service
+      - targets:
+          - {{ hostvars[groups['app'][1]].private_ip | default(hostvars[groups['app'][1]].ansible_host) }}:8092
+        labels:
+          service: news-service
+      - targets:
+          - {{ hostvars[groups['app'][1]].private_ip | default(hostvars[groups['app'][1]].ansible_host) }}:8096
+        labels:
+          service: audit-service
+
+  - job_name: promotion-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - {{ hostvars[groups['app'][1]].private_ip | default(hostvars[groups['app'][1]].ansible_host) }}:8093
+        labels:
+          service: promotion-service
+{% endif %}

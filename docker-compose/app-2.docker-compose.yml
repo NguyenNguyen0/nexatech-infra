@@ -116,6 +116,16 @@ services:
       EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
       EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
       PORT: ${AGENT_SERVICE_PORT:-8097}
+      MCP_SERVER_URL: http://mcp-server:8094
+      MCP_META_URL: http://mcp-server:8094
+      MCP_ENABLE_DOMAIN_ROUTING: "true"
+      MCP_INVENTORY_URL: http://inventory-mcp:8101
+      MCP_PRODUCT_URL: http://product-mcp:8102
+      MCP_ORDER_URL: http://order-mcp:8103
+      MCP_PAYMENT_URL: http://payment-mcp:8104
+      MCP_PROMOTION_URL: http://promotion-mcp:8105
+      MCP_NEWS_URL: http://news-mcp:8106
+      MCP_AUDIT_URL: http://audit-mcp:8107
     ports:
       - "${AGENT_SERVICE_PORT:-8097}:${AGENT_SERVICE_PORT:-8097}"
     networks:
@@ -130,8 +140,137 @@ services:
     environment:
       EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
       EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: meta-mcp
+      PORT: "8094"
+      MCP_SERVER_PROFILE: meta
+      INVENTORY_MCP_URL: http://inventory-mcp:8101
+      PRODUCT_MCP_URL: http://product-mcp:8102
+      ORDER_MCP_URL: http://order-mcp:8103
+      PAYMENT_MCP_URL: http://payment-mcp:8104
+      PROMOTION_MCP_URL: http://promotion-mcp:8105
+      NEWS_MCP_URL: http://news-mcp:8106
+      AUDIT_MCP_URL: http://audit-mcp:8107
     ports:
       - "8094:8094"
+    networks:
+      - nexatech
+
+  inventory-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: inventory-mcp
+      PORT: "8101"
+      MCP_SERVER_PROFILE: inventory
+    ports:
+      - "8101:8101"
+    networks:
+      - nexatech
+
+  product-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: product-mcp
+      PORT: "8102"
+      MCP_SERVER_PROFILE: product
+    ports:
+      - "8102:8102"
+    networks:
+      - nexatech
+
+  order-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: order-mcp
+      PORT: "8103"
+      MCP_SERVER_PROFILE: order
+    ports:
+      - "8103:8103"
+    networks:
+      - nexatech
+
+  payment-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: payment-mcp
+      PORT: "8104"
+      MCP_SERVER_PROFILE: payment
+    ports:
+      - "8104:8104"
+    networks:
+      - nexatech
+
+  promotion-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: promotion-mcp
+      PORT: "8105"
+      MCP_SERVER_PROFILE: promotion
+    ports:
+      - "8105:8105"
+    networks:
+      - nexatech
+
+  news-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: news-mcp
+      PORT: "8106"
+      MCP_SERVER_PROFILE: news
+    ports:
+      - "8106:8106"
+    networks:
+      - nexatech
+
+  audit-mcp:
+    image: ${IMAGE_REGISTRY}/mcp-server:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: /opt/nexatech/env/mcp-server.env
+        required: false
+    environment:
+      EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
+      EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
+      SERVICE_NAME: audit-mcp
+      PORT: "8107"
+      MCP_SERVER_PROFILE: audit
+    ports:
+      - "8107:8107"
     networks:
       - nexatech
 

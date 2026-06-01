@@ -25,9 +25,15 @@
       - promotion-service
       - agent-service
       - mcp-server
+      - inventory-mcp
+      - product-mcp
+      - order-mcp
+      - payment-mcp
+      - promotion-mcp
+      - news-mcp
+      - audit-mcp
       - recommendation-service
     service_env_names: "{{ app2_service_env_names if app_group | default('app-1') == 'app-2' else app1_service_env_names }}"
-    keycloak_internal_url: "http://{{ hostvars[groups['infra'][0]].private_ip | default(hostvars[groups['infra'][0]].ansible_host) }}:9000"
   pre_tasks:
     - name: Use private Keycloak URL for identity-service admin calls
       ansible.builtin.set_fact:

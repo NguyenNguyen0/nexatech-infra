@@ -11,6 +11,9 @@
     force_recreate_kong: false
     keycloak_realm_import_src: "{{ playbook_dir }}/../../../nexatech-backend/_realms/realm-export.json"
     kong_config_template_src: "{{ playbook_dir }}/../templates/kong.yml.j2"
+    prometheus_config_template_src: "{{ playbook_dir }}/../templates/prometheus.yml.j2"
+    grafana_provisioning_src: "{{ playbook_dir }}/../../monitoring/grafana/provisioning/"
+    grafana_dashboards_src: "{{ playbook_dir }}/../../monitoring/grafana/dashboards/"
     create_rds_databases_script_src: "{{ playbook_dir }}/../../scripts/create-rds-databases.sh"
     create_rds_databases_script_dest: /opt/nexatech/scripts/create-rds-databases.sh
     diagnose_infra_cors_script_src: "{{ playbook_dir }}/../../scripts/diagnose-infra-cors.sh"
@@ -44,6 +47,8 @@
       loop:
         - /opt/nexatech/keycloak
         - /opt/nexatech/kong
+        - /opt/nexatech/monitoring/grafana/provisioning
+        - /opt/nexatech/monitoring/grafana/dashboards
         - /opt/nexatech/scripts
 
     - name: Copy Keycloak realm import
@@ -58,6 +63,26 @@
         dest: /opt/nexatech/kong/kong.yml
         mode: "0644"
       register: kong_config_result
+
+    - name: Render Prometheus scrape config
+      ansible.builtin.template:
+        src: "{{ prometheus_config_template_src }}"
+        dest: /opt/nexatech/monitoring/prometheus.yml
+        mode: "0644"
+
+    - name: Copy Grafana provisioning config
+      ansible.builtin.copy:
+        src: "{{ grafana_provisioning_src }}"
+        dest: /opt/nexatech/monitoring/grafana/provisioning/
+        mode: "0644"
+        directory_mode: "0755"
+
+    - name: Copy Grafana dashboards
+      ansible.builtin.copy:
+        src: "{{ grafana_dashboards_src }}"
+        dest: /opt/nexatech/monitoring/grafana/dashboards/
+        mode: "0644"
+        directory_mode: "0755"
 
     - name: Install PostgreSQL client
       ansible.builtin.apt:
