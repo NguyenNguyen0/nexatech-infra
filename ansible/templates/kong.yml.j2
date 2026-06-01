@@ -197,12 +197,6 @@ services:
 plugins:
   - name: prometheus
   - name: request-transformer
-    route: identity-route
-    config:
-      remove:
-        headers:
-          - Authorization
-  - name: request-transformer
     route: public-product-read-route
     config:
       remove:
