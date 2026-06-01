@@ -46,6 +46,28 @@
       become: true
       changed_when: false
 
+    - name: Use private Keycloak issuer for internal services
+      ansible.builtin.set_fact:
+        keycloak_issuer_url: "{{ keycloak_internal_url }}"
+
+    - name: Force infra services to use private Keycloak issuer
+      ansible.builtin.set_fact:
+        service_env_files: >-
+          {{
+            service_env_files | combine({
+              'api-gateway': (service_env_files['api-gateway'] | default({})) | combine({
+                'KEYCLOAK_ISSUER_URI': keycloak_issuer_url ~ '/realms/' ~ keycloak_realm
+              }),
+              'keycloak': (service_env_files['keycloak'] | default({})) | combine({
+                'KC_HTTP_ENABLED': 'true',
+                'KC_HOSTNAME': keycloak_issuer_url,
+                'KC_HOSTNAME_ADMIN': keycloak_issuer_url,
+                'KC_HOSTNAME_BACKCHANNEL_DYNAMIC': 'false',
+                'KC_HOSTNAME_STRICT': 'false'
+              })
+            }, recursive=True)
+          }}
+
     - name: Create infra asset directories
       ansible.builtin.file:
         path: "{{ item }}"

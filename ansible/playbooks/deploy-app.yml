@@ -40,6 +40,34 @@
       become: true
       changed_when: false
 
+    - name: Use private Keycloak issuer for app services
+      ansible.builtin.set_fact:
+        keycloak_issuer_url: "{{ keycloak_internal_url }}"
+
+    - name: Force Spring services to use private Keycloak issuer
+      ansible.builtin.set_fact:
+        service_env_files: >-
+          {{
+            service_env_files | combine({
+              item: (service_env_files[item] | default({})) | combine({
+                'KEYCLOAK_ISSUER_URI': keycloak_issuer_url ~ '/realms/' ~ keycloak_realm
+              })
+            }, recursive=True)
+          }}
+      loop:
+        - identity-service
+        - user-service
+        - product-service
+        - order-service
+        - inventory-service
+        - payment-service
+        - notification-service
+        - chat-service
+        - shipping-service
+        - news-service
+        - audit-service
+        - storage-service
+
     - name: Use private Keycloak URL for identity-service admin calls
       ansible.builtin.set_fact:
         service_env_files: >-

@@ -140,7 +140,7 @@ services:
     environment:
       EUREKA_SERVER_URL: ${EUREKA_URL:-http://INFRA_PRIVATE_IP:8761/eureka/}
       EUREKA_INSTANCE_HOSTNAME: ${HOST_PRIVATE_IP}
-      SERVICE_NAME: meta-mcp
+      SERVICE_NAME: mcp-server
       PORT: "8094"
       MCP_SERVER_PROFILE: meta
       INVENTORY_MCP_URL: http://inventory-mcp:8101

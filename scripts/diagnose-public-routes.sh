@@ -3,6 +3,8 @@ set -u
 
 REPORT="${REPORT:-/tmp/nexatech-route-diagnosis-$(hostname)-$(date +%Y%m%d-%H%M%S).log}"
 BASE_URL="${BASE_URL:-http://127.0.0.1:8080}"
+KONG_URL="${KONG_URL:-http://127.0.0.1:8000}"
+PUBLIC_URL="${PUBLIC_URL:-}"
 CURL_TIMEOUT="${CURL_TIMEOUT:-8}"
 LOG_LINES="${LOG_LINES:-300}"
 COMPOSE_DIR="${COMPOSE_DIR:-/opt/nexatech/compose}"
@@ -74,24 +76,30 @@ curl_status() {
   local url="$2"
   local origin="${3:-}"
   local extra=()
+  local header_file="/tmp/nexatech-curl-headers.$$"
+  local body_file="/tmp/nexatech-curl-body.$$"
 
   if [ -n "$origin" ]; then
     extra=(-H "Origin: $origin" -H "Access-Control-Request-Method: GET")
   fi
 
-  curl -k -sS -m "$CURL_TIMEOUT" -o /tmp/nexatech-curl-body.$$ \
+  curl -k -sS -m "$CURL_TIMEOUT" -D "$header_file" -o "$body_file" \
     -w 'status=%{http_code} connect=%{time_connect}s starttransfer=%{time_starttransfer}s total=%{time_total}s remote=%{remote_ip}:%{remote_port} url=%{url_effective}\n' \
     -X "$method" "${extra[@]}" "$url" 2>&1
   local code=$?
   if [ "$code" -ne 0 ]; then
     echo "curl_exit=$code"
   fi
-  if [ -s /tmp/nexatech-curl-body.$$ ]; then
+  if [ -n "$origin" ] || [ "$method" = "OPTIONS" ]; then
+    echo "--- CORS headers ---"
+    awk 'BEGIN{IGNORECASE=1} /^HTTP\// || /^access-control-/ || /^vary:/ || /^server:/ || /^via:/ || /^x-kong-/ || /^x-cache:/ {print}' "$header_file" 2>/dev/null || true
+  fi
+  if [ -s "$body_file" ]; then
     echo "--- body preview ---"
-    head -c 700 /tmp/nexatech-curl-body.$$ | tr '\n' ' '
+    head -c 700 "$body_file" | tr '\n' ' '
     echo
   fi
-  rm -f /tmp/nexatech-curl-body.$$
+  rm -f "$body_file" "$header_file"
 }
 
 redact_file() {
@@ -242,6 +250,7 @@ fi
 if have curl; then
   APP1_PRIVATE_IP="${APP1_PRIVATE_IP:-$(runtime_value APP1_PRIVATE_IP)}"
   APP2_PRIVATE_IP="${APP2_PRIVATE_IP:-$(runtime_value APP2_PRIVATE_IP)}"
+  PUBLIC_URL="${PUBLIC_URL:-$(runtime_value CLOUDFRONT_API_URL)}"
   APP1_HOST="${APP1_PRIVATE_IP:-127.0.0.1}"
   APP2_HOST="${APP2_PRIVATE_IP:-127.0.0.1}"
 
@@ -259,10 +268,30 @@ if have curl; then
     curl_status GET "$BASE_URL$path" | tee -a "$REPORT"
   done
 
+  section "Kong public route checks"
+  for path in "${GATEWAY_PUBLIC_PATHS[@]}"; do
+    echo "--- GET $KONG_URL$path ---" | tee -a "$REPORT"
+    curl_status GET "$KONG_URL$path" "$CORS_ORIGIN" | tee -a "$REPORT"
+  done
+
+  if [ -n "$PUBLIC_URL" ]; then
+    section "External public route checks"
+    for path in "${GATEWAY_PUBLIC_PATHS[@]}"; do
+      echo "--- GET ${PUBLIC_URL%/}$path ---" | tee -a "$REPORT"
+      curl_status GET "${PUBLIC_URL%/}$path" "$CORS_ORIGIN" | tee -a "$REPORT"
+    done
+  fi
+
   section "Gateway CORS preflight checks"
   for path in "/api/v1/products" "/api/v1/news" "/api/v1/auth/login"; do
     echo "--- OPTIONS $BASE_URL$path ---" | tee -a "$REPORT"
     curl_status OPTIONS "$BASE_URL$path" "$CORS_ORIGIN" | tee -a "$REPORT"
+    echo "--- OPTIONS $KONG_URL$path ---" | tee -a "$REPORT"
+    curl_status OPTIONS "$KONG_URL$path" "$CORS_ORIGIN" | tee -a "$REPORT"
+    if [ -n "$PUBLIC_URL" ]; then
+      echo "--- OPTIONS ${PUBLIC_URL%/}$path ---" | tee -a "$REPORT"
+      curl_status OPTIONS "${PUBLIC_URL%/}$path" "$CORS_ORIGIN" | tee -a "$REPORT"
+    fi
   done
 
   section "Direct service public endpoint probes"

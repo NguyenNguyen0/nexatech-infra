@@ -127,6 +127,12 @@ services:
     env_file:
       - path: /opt/nexatech/env/keycloak.env
         required: false
+    environment:
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: http://${INFRA_PRIVATE_IP}:9000
+      KC_HOSTNAME_ADMIN: http://${INFRA_PRIVATE_IP}:9000
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+      KC_HOSTNAME_STRICT: "false"
     ports:
       - "9000:8080"
     volumes:
