@@ -13,9 +13,9 @@ spec:
 workflow:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
-      when: always
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
+      when: never
     - when: never
 
 stages:
