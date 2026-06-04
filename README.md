@@ -2,6 +2,13 @@
 
 AWS infrastructure and deploy automation for NexaTech backend.
 
+<p align="left">
+  <img src="https://img.shields.io/badge/Terraform-1.6+-7B42BC?logo=terraform&style=flat-square" alt="Terraform" />
+  <img src="https://img.shields.io/badge/Ansible-latest-EE0000?logo=ansible&style=flat-square" alt="Ansible" />
+  <img src="https://img.shields.io/badge/AWS-Infra-232F3E?logo=amazonwebservices&style=flat-square" alt="AWS" />
+  <img src="https://img.shields.io/badge/Ubuntu-24.04-E9430F?logo=ubuntu&style=flat-square" alt="Ubuntu 24.04" />
+</p>
+
 ## What This Provisions
 
 - VPC with public/private subnets.
